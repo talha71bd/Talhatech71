@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Talha Tech - রিপোর্ট ও অ্যানালিটিক্স</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&display=swap');
+    * { font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .animate-fade-in { animation: fadeIn 0.2s ease-out; }
+    @keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .pulse-dot { animation: pulseDot 1.5s infinite; }
+    @keyframes countUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    .animate-count { animation: countUp 0.4s ease-out; }
+    input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+    .glass { background: rgba(15,23,42,0.85); backdrop-filter: blur(20px); }
+    @media print { body * { visibility: hidden; } #printArea, #printArea * { visibility: visible; } #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; } .no-print { display: none !important; } }
+    
+    .profit-positive { color: #10b981 !important; }
+    .profit-negative { color: #ef4444 !important; }
+    
+    .stat-card { transition: all 0.2s ease; }
+    .stat-card:hover { transform: translateY(-2px); }
+
+    /* বটম নেভিগেশনের জন্য বডিতে প্যাডিং */
+    body { padding-bottom: 75px; }
+  </style>
+</head>
+<body class="bg-[#070b14] text-slate-100 antialiased select-none text-sm min-h-screen">
+
+  <!-- ================= হেডার ================= -->
+  <header class="glass border-b border-slate-800/80 sticky top-0 z-30 shadow-lg">
+    <div class="max-w-3xl mx-auto px-4 py-3">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+            <i data-lucide="bar-chart-3" class="w-5 h-5 text-white"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h1 class="text-base font-black tracking-wide text-white leading-tight">রিপোর্ট</h1>
+              <span class="bg-purple-500/20 text-purple-300 text-[9px] font-bold px-1.5 py-0.5 rounded border border-purple-500/30">ANALYTICS</span>
+            </div>
+            <p class="text-[10px] text-purple-400 font-semibold">Talha Tech • বিজনেস ইনসাইট</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button onclick="fetchLiveData(true)" id="btnSync" class="bg-emerald-950/70 hover:bg-emerald-900/90 text-emerald-400 border border-emerald-500/40 px-2.5 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1 shadow active:scale-95 transition">
+            <span class="w-2 h-2 rounded-full bg-emerald-400" id="syncPulse"></span>
+            <span id="syncText">সিঙ্ক</span>
+          </button>
+          <button onclick="openExportModal()" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 p-2 rounded-xl active:scale-95 transition">
+            <i data-lucide="download" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- পিরিয়ড সিলেক্টর -->
+      <div class="flex gap-1 mt-3 overflow-x-auto no-scrollbar pb-0.5">
+        <button onclick="setPeriod('today')" data-period="today" class="period-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">আজ</button>
+        <button onclick="setPeriod('week')" data-period="week" class="period-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">৭ দিন</button>
+        <button onclick="setPeriod('month')" data-period="month" class="period-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">৩০ দিন</button>
+        <button onclick="setPeriod('thisMonth')" data-period="thisMonth" class="period-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">এই মাস</button>
+        <button onclick="setPeriod('lastMonth')" data-period="lastMonth" class="period-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">গত মাস</button>
+        <button onclick="setPeriod('year')" data-period="year" class="period-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">এই বছর</button>
+        <button onclick="setPeriod('all')" data-period="all" class="period-btn bg-cyan-600 text-slate-950 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">সব</button>
+        <button onclick="openCustomRange()" class="bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">
+          <i data-lucide="calendar" class="w-3 h-3 inline"></i> কাস্টম
+        </button>
+      </div>
+
+      <!-- বর্তমান পিরিয়ড ইনফো -->
+      <div class="mt-2 flex justify-between items-center text-[10px]">
+        <span class="text-slate-500" id="currentPeriodLabel">সম্পূর্ণ ডেটা</span>
+        <span class="text-cyan-400 font-mono" id="currentRangeLabel">--</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto p-3.5 space-y-3.5" id="printArea">
+
+    <!-- ============== রিপোর্ট হেডার (প্রিন্ট) ============== -->
+    <div class="hidden print:block text-center pb-3 border-b-2 border-slate-700">
+      <h1 class="text-2xl font-black text-white">Talha Tech</h1>
+      <p class="text-xs text-slate-400">মোবাইল এক্সেসরিজ • 01516513987</p>
+      <p class="text-sm text-slate-300 font-bold mt-1" id="printReportTitle">বিজনেস রিপোর্ট</p>
+    </div>
+
+    <!-- ============== এক্সিকিউটিভ সামারি ============== -->
+    <section>
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
+          <i data-lucide="trending-up" class="w-4 h-4 text-cyan-400"></i> এক্সিকিউটিভ সামারি
+        </h2>
+        <span class="text-[10px] text-slate-500" id="execComparisonText">--</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <!-- Total Revenue -->
+        <div class="stat-card bg-gradient-to-br from-cyan-950/60 to-slate-900 border border-cyan-500/30 rounded-2xl p-3">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="shopping-bag" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span class="text-[10px] font-bold text-cyan-300">মোট রেভিনিউ</span>
+          </div>
+          <p class="text-xl font-black text-white animate-count" id="kpiRevenue">৳০</p>
+          <div class="flex items-center gap-1 mt-1">
+            <span class="text-[10px] font-bold" id="kpiRevenueGrowth">--</span>
+          </div>
+        </div>
+
+        <!-- Total Profit -->
+        <div class="stat-card bg-gradient-to-br from-emerald-950/60 to-slate-900 border border-emerald-500/30 rounded-2xl p-3">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span class="text-[10px] font-bold text-emerald-300">নিট লাভ</span>
+          </div>
+          <p class="text-xl font-black text-emerald-400 animate-count" id="kpiNetProfit">৳০</p>
+          <div class="flex items-center gap-1 mt-1">
+            <span class="text-[10px] font-bold" id="kpiProfitGrowth">--</span>
+          </div>
+        </div>
+
+        <!-- Total Expenses -->
+        <div class="stat-card bg-gradient-to-br from-rose-950/60 to-slate-900 border border-rose-500/30 rounded-2xl p-3">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="trending-down" class="w-3.5 h-3.5 text-rose-400"></i>
+            <span class="text-[10px] font-bold text-rose-300">মোট খরচ</span>
+          </div>
+          <p class="text-xl font-black text-rose-400 animate-count" id="kpiExpenses">৳০</p>
+          <p class="text-[9px] text-slate-500 mt-1">অপারেটিং + লস</p>
+        </div>
+
+        <!-- Profit Margin -->
+        <div class="stat-card bg-gradient-to-br from-amber-950/60 to-slate-900 border border-amber-500/30 rounded-2xl p-3">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="percent" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span class="text-[10px] font-bold text-amber-300">প্রফিট মার্জিন</span>
+          </div>
+          <p class="text-xl font-black text-amber-400 animate-count" id="kpiMargin">০%</p>
+          <p class="text-[9px] text-slate-500 mt-1">রেভিনিউর কত %</p>
+        </div>
+
+        <!-- Transactions -->
+        <div class="stat-card bg-gradient-to-br from-indigo-950/60 to-slate-900 border border-indigo-500/30 rounded-2xl p-3">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="receipt" class="w-3.5 h-3.5 text-indigo-400"></i>
+            <span class="text-[10px] font-bold text-indigo-300">লেনদেন</span>
+          </div>
+          <p class="text-xl font-black text-white animate-count" id="kpiTransactions">০</p>
+          <p class="text-[9px] text-slate-500 mt-1" id="kpiAvgTicket">গড়: ৳০</p>
+        </div>
+
+        <!-- Customers -->
+        <div class="stat-card bg-gradient-to-br from-purple-950/60 to-slate-900 border border-purple-500/30 rounded-2xl p-3">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="users" class="w-3.5 h-3.5 text-purple-400"></i>
+            <span class="text-[10px] font-bold text-purple-300">কাস্টমার</span>
+          </div>
+          <p class="text-xl font-black text-white animate-count" id="kpiCustomers">০</p>
+          <p class="text-[9px] text-slate-500 mt-1">ইউনিক ক্রেতা</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== P&L STATEMENT ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl overflow-hidden shadow-lg">
+      <div class="p-3 bg-gradient-to-r from-indigo-950/80 to-purple-950/60 border-b border-slate-800">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xs font-black text-white flex items-center gap-1.5 uppercase tracking-wider">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-cyan-400"></i> P&L Statement
+          </h2>
+          <span class="text-[9px] text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30 font-bold">Profit & Loss</span>
+        </div>
+      </div>
+
+      <div class="p-3 space-y-1 text-xs">
+        <!-- Revenue Section -->
+        <div class="pb-1 mb-1 border-b border-slate-800">
+          <p class="text-[10px] text-cyan-400 font-black uppercase tracking-wide">১. রেভিনিউ (Revenue)</p>
+        </div>
+        <div class="flex justify-between py-1.5">
+          <span class="text-slate-300">পণ্য বিক্রি</span>
+          <span class="font-bold text-white" id="plGrossSales">৳০</span>
+        </div>
+        <div class="flex justify-between py-1.5 text-rose-400">
+          <span>বিক্রি রিটার্ন</span>
+          <span class="font-bold" id="plReturns">-৳০</span>
+        </div>
+        <div class="flex justify-between py-1.5 bg-cyan-500/10 px-2 rounded-lg border border-cyan-500/20">
+          <span class="font-black text-cyan-300">মোট রেভিনিউ</span>
+          <span class="font-black text-cyan-400" id="plNetRevenue">৳০</span>
+        </div>
+
+        <!-- COGS Section -->
+        <div class="pb-1 mb-1 mt-3 border-b border-slate-800">
+          <p class="text-[10px] text-amber-400 font-black uppercase tracking-wide">২. COGS (Cost of Goods)</p>
+        </div>
+        <div class="flex justify-between py-1.5">
+          <span class="text-slate-300">পণ্যের কেনা দাম</span>
+          <span class="font-bold text-amber-400" id="plCOGS">৳০</span>
+        </div>
+        <div class="flex justify-between py-1.5 bg-emerald-500/10 px-2 rounded-lg border border-emerald-500/20">
+          <span class="font-black text-emerald-300">গ্রস প্রফিট</span>
+          <span class="font-black text-emerald-400" id="plGrossProfit">৳০</span>
+        </div>
+        <div class="flex justify-between py-1 text-[10px] text-slate-500 pl-2">
+          <span>গ্রস মার্জিন</span>
+          <span id="plGrossMargin">০%</span>
+        </div>
+
+        <!-- Operating Expenses -->
+        <div class="pb-1 mb-1 mt-3 border-b border-slate-800">
+          <p class="text-[10px] text-rose-400 font-black uppercase tracking-wide">৩. অপারেটিং খরচ</p>
+        </div>
+        <div id="plExpenseBreakdown" class="space-y-0.5"></div>
+        <div class="flex justify-between py-1.5 bg-rose-500/10 px-2 rounded-lg border border-rose-500/20">
+          <span class="font-black text-rose-300">মোট অপারেটিং খরচ</span>
+          <span class="font-black text-rose-400" id="plOperatingExpenses">৳০</span>
+        </div>
+
+        <!-- Damages -->
+        <div class="pb-1 mb-1 mt-3 border-b border-slate-800">
+          <p class="text-[10px] text-red-400 font-black uppercase tracking-wide">৪. ড্যামেজ ও স্টক লস</p>
+        </div>
+        <div class="flex justify-between py-1.5">
+          <span class="text-slate-300">মোট লস মূল্য</span>
+          <span class="font-bold text-red-400" id="plDamageLoss">৳০</span>
+        </div>
+
+        <!-- Net Profit -->
+        <div class="mt-3 p-3 rounded-xl" id="plNetProfitBox">
+          <div class="flex justify-between items-center">
+            <span class="font-black text-sm" id="plNetProfitLabel">চূড়ান্ত নিট লাভ</span>
+            <span class="font-black text-xl" id="plNetProfit">৳০</span>
+          </div>
+          <div class="flex justify-between text-[10px] mt-1 text-slate-500">
+            <span>নিট মার্জিন</span>
+            <span id="plNetMargin">০%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== সেলস ট্রেন্ড চার্ট ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="line-chart" class="w-4 h-4 text-cyan-400"></i> বিক্রি ও লাভের ট্রেন্ড
+        </h2>
+        <select id="trendType" onchange="renderTrendChart()" class="text-[10px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-white outline-none">
+          <option value="auto">অটো</option>
+          <option value="daily">দৈনিক</option>
+          <option value="weekly">সাপ্তাহিক</option>
+          <option value="monthly">মাসিক</option>
+        </select>
+      </div>
+      <div class="w-full h-64"><canvas id="chartTrend"></canvas></div>
+    </section>
+
+    <!-- ============== গ্রোথ কম্প্যারিসন ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="arrow-up-down" class="w-4 h-4 text-emerald-400"></i> পূর্ববর্তী পিরিয়ডের সাথে তুলনা
+        </h2>
+      </div>
+      <div class="w-full h-56"><canvas id="chartComparison"></canvas></div>
+      <div class="grid grid-cols-3 gap-2 mt-2 text-center">
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2">
+          <p class="text-[9px] text-slate-500 font-bold">রেভিনিউ গ্রোথ</p>
+          <p class="text-sm font-black" id="growthRevenue">--</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2">
+          <p class="text-[9px] text-slate-500 font-bold">লাভ গ্রোথ</p>
+          <p class="text-sm font-black" id="growthProfit">--</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2">
+          <p class="text-[9px] text-slate-500 font-bold">লেনদেন গ্রোথ</p>
+          <p class="text-sm font-black" id="growthCount">--</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== ক্যাটাগরি পারফরম্যান্স ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="pie-chart" class="w-4 h-4 text-indigo-400"></i> ক্যাটাগরি পারফরম্যান্স
+        </h2>
+      </div>
+      <div class="w-full h-64"><canvas id="chartCategory"></canvas></div>
+      <div id="categoryTable" class="mt-2 space-y-1"></div>
+    </section>
+
+    <!-- ============== পেমেন্ট মেথড ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="wallet" class="w-4 h-4 text-emerald-400"></i> পেমেন্ট মেথড বিশ্লেষণ
+        </h2>
+      </div>
+      <div class="w-full h-56"><canvas id="chartPayment"></canvas></div>
+      <div id="paymentTable" class="mt-2 grid grid-cols-2 gap-1.5"></div>
+    </section>
+
+    <!-- ============== টপ প্রোডাক্ট ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="flame" class="w-4 h-4 text-orange-400"></i> টপ ১০ প্রোডাক্ট
+        </h2>
+        <span class="text-[9px] text-slate-500">বিক্রির পরিমাণ</span>
+      </div>
+      <div class="w-full h-64"><canvas id="chartTopProducts"></canvas></div>
+      <div id="topProductsTable" class="mt-2 space-y-1 max-h-60 overflow-y-auto no-scrollbar"></div>
+    </section>
+
+    <!-- ============== টপ কাস্টমার ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="star" class="w-4 h-4 text-amber-400"></i> টপ ১০ কাস্টমার
+        </h2>
+        <span class="text-[9px] text-slate-500">মোট কেনাকাটা</span>
+      </div>
+      <div class="w-full h-64"><canvas id="chartTopCustomers"></canvas></div>
+      <div id="topCustomersTable" class="mt-2 space-y-1 max-h-60 overflow-y-auto no-scrollbar"></div>
+    </section>
+
+    <!-- ============== খরচ বিশ্লেষণ ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="receipt" class="w-4 h-4 text-rose-400"></i> খরচ বিশ্লেষণ
+        </h2>
+      </div>
+      <div class="w-full h-56"><canvas id="chartExpense"></canvas></div>
+      <div class="grid grid-cols-2 gap-2 mt-2">
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">ব্যবসায়িক খরচ</p>
+          <p class="text-sm font-black text-rose-400" id="expBusiness">৳০</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">ব্যক্তিগত উত্তোলন</p>
+          <p class="text-sm font-black text-orange-400" id="expPersonal">৳০</p>
+        </div>
+      </div>
+      <div id="expenseTable" class="mt-2 space-y-1 max-h-60 overflow-y-auto no-scrollbar"></div>
+    </section>
+
+    <!-- ============== ক্যাশ ফ্লো ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="arrow-left-right" class="w-4 h-4 text-cyan-400"></i> ক্যাশ ফ্লো রিপোর্ট
+        </h2>
+      </div>
+      <div class="space-y-1.5 text-xs">
+        <div class="flex justify-between p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+          <span class="text-emerald-300 font-bold flex items-center gap-1"><i data-lucide="arrow-down-circle" class="w-3.5 h-3.5"></i> মোট ইনফ্লো</span>
+          <span class="font-black text-emerald-400" id="cashInflow">৳০</span>
+        </div>
+        <div class="flex justify-between p-2 bg-rose-500/10 rounded-lg border border-rose-500/20">
+          <span class="text-rose-300 font-bold flex items-center gap-1"><i data-lucide="arrow-up-circle" class="w-3.5 h-3.5"></i> মোট আউটফ্লো</span>
+          <span class="font-black text-rose-400" id="cashOutflow">৳০</span>
+        </div>
+        <div class="flex justify-between p-2 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
+          <span class="text-cyan-300 font-bold flex items-center gap-1"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i> নিট ক্যাশ ফ্লো</span>
+          <span class="font-black text-cyan-400" id="cashNetFlow">৳০</span>
+        </div>
+      </div>
+      <p class="text-[10px] text-slate-500 mt-2 text-center">বর্তমান মোট ব্যালেন্স: <span class="text-cyan-400 font-black" id="cashCurrentBalance">৳০</span></p>
+    </section>
+
+    <!-- ============== এজিং রিপোর্ট ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="calendar-clock" class="w-4 h-4 text-amber-400"></i> বাকি ও দেনার এজিং
+        </h2>
+      </div>
+
+      <!-- Receivable Aging -->
+      <p class="text-[10px] font-black text-amber-400 uppercase mb-1.5">কাস্টমার বাকি</p>
+      <div class="grid grid-cols-4 gap-1.5 mb-3">
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[8px] text-slate-500 font-bold">০-৩০ দিন</p>
+          <p class="text-[11px] font-black text-emerald-400" id="recvAge0">৳০</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[8px] text-slate-500 font-bold">৩০-৬০ দিন</p>
+          <p class="text-[11px] font-black text-amber-400" id="recvAge30">৳০</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[8px] text-slate-500 font-bold">৬০-৯০ দিন</p>
+          <p class="text-[11px] font-black text-orange-400" id="recvAge60">৳০</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[8px] text-slate-500 font-bold">৯০+ দিন</p>
+          <p class="text-[11px] font-black text-red-400" id="recvAge90">৳০</p>
+        </div>
+      </div>
+
+      <!-- Payable Aging -->
+      <p class="text-[10px] font-black text-purple-400 uppercase mb-1.5">সাপ্লায়ার দেনা</p>
+      <div class="grid grid-cols-4 gap-1.5">
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[8px] text-slate-500 font-bold">০-৩০ দিন</p>
+          <p class="text-[11px] font-black text-emerald-400" id="payAge0">৳০</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[8px] text-slate-500 font-bold">৩০-৬০ দিন</p>
+          <p class="text-[11px] font-black text-amber-400" id="payAge30">৳০</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[8px] text-slate-500 font-bold">৬০-৯০ দিন</p>
+          <p class="text-[11px] font-black text-orange-400" id="payAge60">৳০</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[8px] text-slate-500 font-bold">৯০+ দিন</p>
+          <p class="text-[11px] font-black text-red-400" id="payAge90">৳০</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== ইনভেন্টরি রিপোর্ট ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="package" class="w-4 h-4 text-emerald-400"></i> ইনভেন্টরি রিপোর্ট
+        </h2>
+      </div>
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">মোট স্টক</p>
+          <p class="text-sm font-black text-white" id="invTotalStock">০ পিস</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">স্টক ভ্যালু</p>
+          <p class="text-sm font-black text-amber-400" id="invStockValue">৳০</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <p class="text-[10px] font-bold text-emerald-400 mb-1">🔥 ফাস্ট মুভিং</p>
+          <div id="fastMoving" class="space-y-1 text-[10px] max-h-40 overflow-y-auto no-scrollbar"></div>
+        </div>
+        <div>
+          <p class="text-[10px] font-bold text-slate-500 mb-1">🐢 স্লো মুভিং</p>
+          <div id="slowMoving" class="space-y-1 text-[10px] max-h-40 overflow-y-auto no-scrollbar"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== ড্যামেজ রিপোর্ট ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i> ড্যামেজ রিপোর্ট
+        </h2>
+      </div>
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">মোট লস</p>
+          <p class="text-sm font-black text-red-400" id="dmgTotalLoss">৳০</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">মোট আইটেম</p>
+          <p class="text-sm font-black text-white" id="dmgTotalItems">০</p>
+        </div>
+      </div>
+      <div id="dmgByReason" class="space-y-1 text-[10px]"></div>
+    </section>
+
+    <!-- ============== বিজনেস হেলথ স্কোর ============== -->
+    <section class="bg-gradient-to-br from-indigo-950/60 via-purple-950/40 to-slate-900 border border-purple-500/40 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-white flex items-center gap-1.5">
+          <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i> বিজনেস হেলথ স্কোর
+        </h2>
+        <div class="flex items-center gap-1.5">
+          <span class="text-2xl font-black" id="healthScore">০</span>
+          <span class="text-sm text-slate-400">/১০০</span>
+        </div>
+      </div>
+      <div class="w-full h-64"><canvas id="chartHealth"></canvas></div>
+      <div id="healthInsights" class="mt-2 space-y-1 text-[10px]"></div>
+    </section>
+
+    <!-- ============== এক্সপোর্ট ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <h2 class="text-xs font-black text-slate-200 mb-2 flex items-center gap-1.5">
+        <i data-lucide="download" class="w-4 h-4 text-cyan-400"></i> রিপোর্ট এক্সপোর্ট
+      </h2>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="downloadFullPDF()" class="bg-gradient-to-br from-rose-600 to-pink-500 hover:from-rose-500 hover:to-pink-400 text-white font-black py-3 rounded-xl text-xs active:scale-95 transition flex items-center justify-center gap-1.5 shadow-lg">
+          <i data-lucide="file-text" class="w-4 h-4"></i> PDF ডাউনলোড
+        </button>
+        <button onclick="exportAllCSV()" class="bg-gradient-to-br from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black py-3 rounded-xl text-xs active:scale-95 transition flex items-center justify-center gap-1.5 shadow-lg">
+          <i data-lucide="table" class="w-4 h-4"></i> CSV ডাউনলোড
+        </button>
+        <button onclick="printReport()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-black py-3 rounded-xl text-xs active:scale-95 transition flex items-center justify-center gap-1.5">
+          <i data-lucide="printer" class="w-4 h-4"></i> প্রিন্ট
+        </button>
+        <button onclick="shareReport()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-black py-3 rounded-xl text-xs active:scale-95 transition flex items-center justify-center gap-1.5">
+          <i data-lucide="share-2" class="w-4 h-4"></i> শেয়ার
+        </button>
+      </div>
+      <p class="text-[9px] text-slate-500 text-center mt-2" id="reportTimestamp">--</p>
+    </section>
+
+  </main>
+
+  <!-- ================= ইউনিভার্সাল বটম নেভিগেশন বার ================= -->
+  <nav class="fixed bottom-0 left-0 right-0 glass border-t border-slate-800 z-50">
+    <div class="max-w-3xl mx-auto grid grid-cols-7 text-center py-2 px-1">
+      <a href="index.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">হোম</span>
+      </a>
+      <a href="pos.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">বিক্রি</span>
+      </a>
+      <a href="inventory.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="package-plus" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">মাল এন্ট্রি</span>
+      </a>
+      <a href="products.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="boxes" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">পণ্য</span>
+      </a>
+      <a href="expenses.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="receipt" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">খরচ/হিসাব</span>
+      </a>
+      <a href="history.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="history" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">হিস্ট্রি</span>
+      </a>
+      <!-- এই পেজটি একটিভ -->
+      <a href="reports.html" class="flex flex-col items-center gap-0.5 text-cyan-400 transition active:scale-95">
+        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">রিপোর্ট</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ============== কাস্টম রেঞ্জ মডাল ============== -->
+  <div id="customRangeModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 flex items-center justify-center">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-4 shadow-2xl space-y-3 animate-slide-up">
+      <div class="flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="calendar" class="w-4 h-4 text-cyan-400"></i> কাস্টম তারিখ
+        </h3>
+        <button onclick="closeModal('customRangeModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div>
+        <label class="text-[10px] font-bold text-slate-400 mb-1 block">শুরুর তারিখ</label>
+        <input type="date" id="customFrom" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-cyan-400">
+      </div>
+      <div>
+        <label class="text-[10px] font-bold text-slate-400 mb-1 block">শেষ তারিখ</label>
+        <input type="date" id="customTo" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-cyan-400">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="closeModal('customRangeModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition">বাতিল</button>
+        <button onclick="applyCustomRange()" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black py-2.5 rounded-xl text-xs active:scale-95 transition">প্রয়োগ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== এক্সপোর্ট মডাল ============== -->
+  <div id="exportModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 flex items-center justify-center">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-4 shadow-2xl space-y-3 animate-slide-up">
+      <div class="flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="download" class="w-4 h-4 text-cyan-400"></i> এক্সপোর্ট
+        </h3>
+        <button onclick="closeModal('exportModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <button onclick="downloadFullPDF(); closeModal('exportModal')" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-black py-3 rounded-xl text-xs active:scale-95 transition flex items-center justify-center gap-2">
+        <i data-lucide="file-text" class="w-4 h-4"></i> সম্পূর্ণ PDF রিপোর্ট
+      </button>
+      <button onclick="exportAllCSV(); closeModal('exportModal')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl text-xs active:scale-95 transition flex items-center justify-center gap-2">
+        <i data-lucide="table" class="w-4 h-4"></i> সম্পূর্ণ CSV
+      </button>
+      <button onclick="printReport(); closeModal('exportModal')" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-black py-3 rounded-xl text-xs active:scale-95 transition flex items-center justify-center gap-2">
+        <i data-lucide="printer" class="w-4 h-4"></i> প্রিন্ট করুন
+      </button>
+    </div>
+  </div>
+
+  <!-- ============== টোস্ট ============== -->
+  <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 opacity-0 pointer-events-none">
+    <i data-lucide="check-circle-2" class="w-4 h-4" id="toastIcon"></i>
+    <span id="toastMsg">সফল!</span>
+  </div>
+
+  <script>
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyqJOsL_DK29otfshT_RBZjbgj0_OCxCsKt1I9rKtZauz64o3YEB2boYhzs7WxNX30m/exec";
+    const KEYS = {
+      sales:'tt_master_sales', products:'tt_master_products', expenses:'tt_master_expenses',
+      damages:'tt_master_damages', dues:'tt_master_dues', payables:'tt_supplier_payables',
+      accounts:'tt_cash_accounts', cashTx:'tt_cash_transactions', capital:'tt_capital_transactions'
+    };
+
+    let db = { sales:[], products:[], expenses:[], damages:[], dues:[], payables:[], accounts:[], cashTx:[], capital:[] };
+    let state = { period:'all', from:null, to:null, trendType:'auto' };
+    let charts = {};
+
+    // ============================================================
+    // ইউটিলিটি
+    // ============================================================
+    const fmt = n => '৳' + Math.round(Number(n)||0).toLocaleString('en-IN');
+    const fmtPct = n => (Number(n)||0).toFixed(1) + '%';
+    const todayStr = () => new Date().toISOString().split('T')[0];
+    const escapeHtml = s => String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+    function toast(msg, type='success') {
+      const t = document.getElementById('toast'), m = document.getElementById('toastMsg'), i = document.getElementById('toastIcon');
+      m.innerText = msg;
+      if (type==='success') { t.className='fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950'; i.setAttribute('data-lucide','check-circle-2'); }
+      else if (type==='error') { t.className='fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-rose-500 to-red-600 text-white'; i.setAttribute('data-lucide','alert-circle'); }
+      else { t.className='fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950'; i.setAttribute('data-lucide','info'); }
+      lucide.createIcons();
+      t.classList.remove('opacity-0','pointer-events-none');
+      clearTimeout(window._tt); window._tt = setTimeout(()=>t.classList.add('opacity-0','pointer-events-none'), 2500);
+    }
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.body.style.overflow='hidden'; lucide.createIcons(); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.body.style.overflow=''; }
+
+    // ============================================================
+    // ডাটা লোড
+    // ============================================================
+    function loadDB() {
+      try {
+        db.sales = JSON.parse(localStorage.getItem(KEYS.sales) || '[]');
+        db.products = JSON.parse(localStorage.getItem(KEYS.products) || '[]');
+        db.expenses = JSON.parse(localStorage.getItem(KEYS.expenses) || '[]');
+        db.damages = JSON.parse(localStorage.getItem(KEYS.damages) || '[]');
+        db.dues = JSON.parse(localStorage.getItem(KEYS.dues) || '[]');
+        db.payables = JSON.parse(localStorage.getItem(KEYS.payables) || '[]');
+        db.accounts = JSON.parse(localStorage.getItem(KEYS.accounts) || '[]');
+        db.cashTx = JSON.parse(localStorage.getItem(KEYS.cashTx) || '[]');
+        db.capital = JSON.parse(localStorage.getItem(KEYS.capital) || '[]');
+      } catch (e) { console.warn('লোড এরর:', e); }
+    }
+
+    // ============================================================
+    // পিরিয়ড
+    // ============================================================
+    function setPeriod(period) {
+      state.period = period;
+      state.from = null;
+      state.to = null;
+
+      document.querySelectorAll('.period-btn').forEach(btn => {
+        if (btn.dataset.period === period) btn.className = 'period-btn bg-cyan-600 text-slate-950 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0';
+        else btn.className = 'period-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0';
+      });
+
+      const labels = { today:'আজ', week:'৭ দিন', month:'৩০ দিন', thisMonth:'এই মাস', lastMonth:'গত মাস', year:'এই বছর', all:'সম্পূর্ণ ডেটা' };
+      document.getElementById('currentPeriodLabel').innerText = labels[period] || 'কাস্টম';
+      renderAll();
+    }
+
+    function openCustomRange() {
+      document.getElementById('customFrom').value = '';
+      document.getElementById('customTo').value = '';
+      openModal('customRangeModal');
+    }
+
+    function applyCustomRange() {
+      const from = document.getElementById('customFrom').value;
+      const to = document.getElementById('customTo').value;
+      if (!from || !to) return toast('দুটি তারিখ দিন','error');
+      if (from > to) return toast('শুরুর তারিখ পরে হতে হবে','error');
+
+      state.period = 'custom';
+      state.from = from;
+      state.to = to;
+
+      document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.className = 'period-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0';
+      });
+
+      document.getElementById('currentPeriodLabel').innerText = 'কাস্টম রেঞ্জ';
+      closeModal('customRangeModal');
+      renderAll();
+    }
+
+    function getDateRange() {
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+
+      if (state.period === 'custom' && state.from && state.to) {
+        return { from: state.from, to: state.to };
+      }
+
+      switch (state.period) {
+        case 'today':
+          return { from: todayStr, to: todayStr };
+        case 'week': {
+          const d = new Date(); d.setDate(d.getDate()-7);
+          return { from: d.toISOString().split('T')[0], to: todayStr };
+        }
+        case 'month': {
+          const d = new Date(); d.setDate(d.getDate()-30);
+          return { from: d.toISOString().split('T')[0], to: todayStr };
+        }
+        case 'thisMonth': {
+          return { from: today.toISOString().slice(0,7)+'-01', to: todayStr };
+        }
+        case 'lastMonth': {
+          const d = new Date(today.getFullYear(), today.getMonth(), 0);
+          const start = d.toISOString().slice(0,7)+'-01';
+          return { from: start, to: d.toISOString().split('T')[0] };
+        }
+        case 'year': {
+          return { from: today.getFullYear()+'-01-01', to: todayStr };
+        }
+        case 'all':
+        default:
+          return { from: '2000-01-01', to: '2100-12-31' };
+      }
+    }
+
+    function getPreviousRange(range) {
+      if (state.period === 'all') return null;
+      const from = new Date(range.from);
+      const to = new Date(range.to);
+      const days = Math.ceil((to - from) / (1000*60*60*24)) + 1;
+      const prevTo = new Date(from); prevTo.setDate(prevTo.getDate()-1);
+      const prevFrom = new Date(prevTo); prevFrom.setDate(prevFrom.getDate()-days+1);
+      return { from: prevFrom.toISOString().split('T')[0], to: prevTo.toISOString().split('T')[0] };
+    }
+
+    // ============================================================
+    // ডেটা ফিল্টার
+    // ============================================================
+    function filterSales(range) {
+      return db.sales.filter(s => !s.isCancelled && s.date >= range.from && s.date <= range.to);
+    }
+    function filterExpenses(range) {
+      return db.expenses.filter(e => !e.isCancelled && e.date >= range.from && e.date <= range.to);
+    }
+    function filterDamages(range) {
+      return db.damages.filter(d => !d.isCancelled && d.date >= range.from && d.date <= range.to);
+    }
+
+    // ============================================================
+    // মূল রেন্ডার
+    // ============================================================
+    function renderAll() {
+      const range = getDateRange();
+      document.getElementById('currentRangeLabel').innerText = `${range.from} → ${range.to}`;
+      document.getElementById('printReportTitle').innerText = `বিজনেস রিপোর্ট (${range.from} - ${range.to})`;
+      document.getElementById('reportTimestamp').innerText = `তৈরি: ${new Date().toLocaleString('bn-BD')}`;
+
+      renderExecutiveSummary(range);
+      renderPLStatement(range);
+      renderTrendChart();
+      renderComparisonChart(range);
+      renderCategoryChart(range);
+      renderPaymentChart(range);
+      renderTopProductsChart(range);
+      renderTopCustomersChart(range);
+      renderExpenseChart(range);
+      renderCashFlow(range);
+      renderAgingAnalysis();
+      renderInventoryReport();
+      renderDamageReport(range);
+      renderHealthScore(range);
+      lucide.createIcons();
+    }
+
+    // ============================================================
+    // এক্সিকিউটিভ সামারি
+    // ============================================================
+    function renderExecutiveSummary(range) {
+      const sales = filterSales(range).filter(s => !s.isReturned);
+      const revenue = sales.reduce((s,x)=>s+(x.totalAmount||0),0);
+      const grossProfit = sales.reduce((s,x)=>s+(x.profit||0),0);
+      const expenses = filterExpenses(range).filter(e => e.type !== 'personal');
+      const dmgLoss = filterDamages(range).reduce((s,d)=>s+(d.lossAmount||0),0);
+      const operatingExp = expenses.filter(e => e.category !== 'মাল নষ্ট/ড্যামেজ').reduce((s,e)=>s+(e.amount||0),0);
+      const totalExpense = operatingExp + dmgLoss;
+      const netProfit = grossProfit - totalExpense;
+      const margin = revenue > 0 ? (netProfit / revenue * 100) : 0;
+      const customers = new Set(sales.map(s => (s.customerName||'').toLowerCase())).size;
+      const avgTicket = sales.length > 0 ? revenue / sales.length : 0;
+
+      // গ্রোথ
+      const prevRange = getPreviousRange(range);
+      let revGrowth = null, profitGrowth = null, countGrowth = null;
+      if (prevRange) {
+        const prevSales = filterSales(prevRange).filter(s => !s.isReturned);
+        const prevRevenue = prevSales.reduce((s,x)=>s+(x.totalAmount||0),0);
+        const prevExpenses = filterExpenses(prevRange).filter(e => e.type !== 'personal');
+        const prevDmg = filterDamages(prevRange).reduce((s,d)=>s+(d.lossAmount||0),0);
+        const prevOpExp = prevExpenses.filter(e => e.category !== 'মাল নষ্ট/ড্যামেজ').reduce((s,e)=>s+(e.amount||0),0);
+        const prevProfit = prevSales.reduce((s,x)=>s+(x.profit||0),0) - prevOpExp - prevDmg;
+
+        revGrowth = prevRevenue > 0 ? ((revenue - prevRevenue) / prevRevenue * 100) : null;
+        profitGrowth = prevProfit > 0 ? ((netProfit - prevProfit) / prevProfit * 100) : null;
+        countGrowth = prevSales.length > 0 ? ((sales.length - prevSales.length) / prevSales.length * 100) : null;
+
+        document.getElementById('execComparisonText').innerText = `তুলনা: ${prevRange.from} → ${prevRange.to}`;
+      } else {
+        document.getElementById('execComparisonText').innerText = 'সম্পূর্ণ ডেটা';
+      }
+
+      document.getElementById('kpiRevenue').innerText = fmt(revenue);
+      document.getElementById('kpiNetProfit').innerText = fmt(netProfit);
+      document.getElementById('kpiExpenses').innerText = fmt(totalExpense);
+      document.getElementById('kpiMargin').innerText = fmtPct(margin);
+      document.getElementById('kpiTransactions').innerText = sales.length;
+      document.getElementById('kpiCustomers').innerText = customers;
+      document.getElementById('kpiAvgTicket').innerText = `গড়: ${fmt(avgTicket)}`;
+
+      // গ্রোথ ইন্ডিকেটর
+      const setGrowth = (elId, val) => {
+        const el = document.getElementById(elId);
+        if (val === null) {
+          el.innerText = '--';
+          el.className = 'text-[10px] font-bold text-slate-500';
+        } else {
+          const sign = val > 0 ? '▲' : val < 0 ? '▼' : '◆';
+          el.innerText = `${sign} ${Math.abs(val).toFixed(1)}%`;
+          el.className = 'text-[10px] font-bold ' + (val > 0 ? 'text-emerald-400' : val < 0 ? 'text-rose-400' : 'text-slate-400');
+        }
+      };
+      setGrowth('kpiRevenueGrowth', revGrowth);
+      setGrowth('kpiProfitGrowth', profitGrowth);
+
+      // গ্রোথ কম্প্যারিসন সেকশন
+      setGrowth('growthRevenue', revGrowth);
+      setGrowth('growthProfit', profitGrowth);
+      setGrowth('growthCount', countGrowth);
+    }
+
+    // ============================================================
+    // P&L Statement
+    // ============================================================
+    function renderPLStatement(range) {
+      const allSales = filterSales(range);
+      const validSales = allSales.filter(s => !s.isReturned);
+      const returns = allSales.filter(s => s.isReturned);
+
+      const grossSales = validSales.reduce((s,x)=>s+(x.totalAmount||0),0);
+      const returnAmount = returns.reduce((s,x)=>s+(x.totalAmount||0),0);
+      const netRevenue = grossSales;
+      const grossProfit = validSales.reduce((s,x)=>s+(x.profit||0),0);
+      const cogs = netRevenue - grossProfit;
+      const grossMargin = netRevenue > 0 ? (grossProfit / netRevenue * 100) : 0;
+
+      const expenses = filterExpenses(range).filter(e => e.type !== 'personal' && e.category !== 'মাল নষ্ট/ড্যামেজ');
+      const opExp = expenses.reduce((s,e)=>s+(e.amount||0),0);
+      const dmgLoss = filterDamages(range).reduce((s,d)=>s+(d.lossAmount||0),0);
+      const netProfit = grossProfit - opExp - dmgLoss;
+      const netMargin = netRevenue > 0 ? (netProfit / netRevenue * 100) : 0;
+
+      // খরচ ব্রেকডাউন
+      const expMap = {};
+      expenses.forEach(e => {
+        const cat = e.category || 'অন্যান্য';
+        expMap[cat] = (expMap[cat]||0) + (e.amount||0);
+      });
+      const sortedExp = Object.entries(expMap).sort((a,b)=>b[1]-a[1]);
+
+      document.getElementById('plExpenseBreakdown').innerHTML = sortedExp.length === 0
+        ? '<p class="text-[10px] text-slate-600 text-center py-1">কোনো খরচ নেই</p>'
+        : sortedExp.map(([cat, amt]) => `
+          <div class="flex justify-between py-1 pl-2 text-[11px]">
+            <span class="text-slate-400">${escapeHtml(cat)}</span>
+            <span class="text-rose-400/80">${fmt(amt)}</span>
+          </div>
+        `).join('');
+
+      document.getElementById('plGrossSales').innerText = fmt(grossSales);
+      document.getElementById('plReturns').innerText = returns.length > 0 ? '-'+fmt(returnAmount) : '৳০';
+      document.getElementById('plNetRevenue').innerText = fmt(netRevenue);
+      document.getElementById('plCOGS').innerText = fmt(cogs);
+      document.getElementById('plGrossProfit').innerText = fmt(grossProfit);
+      document.getElementById('plGrossMargin').innerText = fmtPct(grossMargin);
+      document.getElementById('plOperatingExpenses').innerText = fmt(opExp);
+      document.getElementById('plDamageLoss').innerText = fmt(dmgLoss);
+      document.getElementById('plNetProfit').innerText = fmt(netProfit);
+      document.getElementById('plNetMargin').innerText = fmtPct(netMargin);
+
+      const box = document.getElementById('plNetProfitBox');
+      const label = document.getElementById('plNetProfitLabel');
+      if (netProfit >= 0) {
+        box.className = 'mt-3 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30';
+        label.className = 'font-black text-sm text-emerald-400';
+        document.getElementById('plNetProfit').className = 'font-black text-xl text-emerald-400';
+      } else {
+        box.className = 'mt-3 p-3 rounded-xl bg-rose-500/15 border border-rose-500/30';
+        label.className = 'font-black text-sm text-rose-400';
+        document.getElementById('plNetProfit').className = 'font-black text-xl text-rose-400';
+      }
+    }
+
+    // ============================================================
+    // ট্রেন্ড চার্ট
+    // ============================================================
+    function renderTrendChart() {
+      const range = getDateRange();
+      const sales = filterSales(range).filter(s => !s.isReturned);
+
+      let labels = [], revenueData = [], profitData = [];
+
+      const trendType = document.getElementById('trendType').value;
+      const days = (new Date(range.to) - new Date(range.from)) / (1000*60*60*24);
+      let mode = trendType;
+      if (mode === 'auto') mode = days <= 31 ? 'daily' : days <= 180 ? 'weekly' : 'monthly';
+
+      if (mode === 'daily') {
+        const map = {};
+        sales.forEach(s => { if (!map[s.date]) map[s.date] = { rev:0, prof:0 }; map[s.date].rev += (s.totalAmount||0); map[s.date].prof += (s.profit||0); });
+        const dates = [];
+        const from = new Date(range.from);
+        const to = new Date(range.to);
+        for (let d = new Date(from); d <= to; d.setDate(d.getDate()+1)) {
+          const ds = d.toISOString().split('T')[0];
+          dates.push(ds);
+          if (dates.length > 60) break;
+        }
+        labels = dates.map(d => d.slice(5));
+        revenueData = dates.map(d => map[d]?.rev || 0);
+        profitData = dates.map(d => map[d]?.prof || 0);
+      } else if (mode === 'weekly') {
+        const map = {};
+        sales.forEach(s => {
+          const d = new Date(s.date);
+          const weekStart = new Date(d); weekStart.setDate(d.getDate() - d.getDay());
+          const wk = weekStart.toISOString().split('T')[0];
+          if (!map[wk]) map[wk] = { rev:0, prof:0 };
+          map[wk].rev += (s.totalAmount||0);
+          map[wk].prof += (s.profit||0);
+        });
+        const weeks = Object.keys(map).sort();
+        labels = weeks.map(w => w.slice(5));
+        revenueData = weeks.map(w => map[w].rev);
+        profitData = weeks.map(w => map[w].prof);
+      } else {
+        const map = {};
+        sales.forEach(s => {
+          const m = s.date.slice(0,7);
+          if (!map[m]) map[m] = { rev:0, prof:0 };
+          map[m].rev += (s.totalAmount||0);
+          map[m].prof += (s.profit||0);
+        });
+        const months = Object.keys(map).sort();
+        labels = months;
+        revenueData = months.map(m => map[m].rev);
+        profitData = months.map(m => map[m].prof);
+      }
+
+      if (charts.trend) charts.trend.destroy();
+      const ctx = document.getElementById('chartTrend').getContext('2d');
+      charts.trend = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels.length ? labels : ['ডেটা নেই'],
+          datasets: [
+            { label: 'রেভিনিউ', data: revenueData.length?revenueData:[0], borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.1)', tension: 0.4, fill: true, pointRadius: 3, pointHoverRadius: 6 },
+            { label: 'প্রফিট', data: profitData.length?profitData:[0], borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.4, fill: true, pointRadius: 3, pointHoverRadius: 6 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { intersect: false, mode: 'index' },
+          plugins: {
+            legend: { labels: { color: '#94a3b8', font: { family: 'Hind Siliguri', size: 11 }, boxWidth: 12 } },
+            tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ৳${Math.round(ctx.parsed.y).toLocaleString('en-IN')}` } }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8', font: { size: 9 }, maxRotation: 0 }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', font: { size: 9 }, callback: v => '৳'+(v/1000>=1?(v/1000)+'k':v) }, grid: { color: '#1e293b' } }
+          }
+        }
+      });
+    }
+
+    // ============================================================
+    // কম্প্যারিসন চার্ট
+    // ============================================================
+    function renderComparisonChart(range) {
+      const prevRange = getPreviousRange(range);
+      if (!prevRange) {
+        if (charts.comparison) charts.comparison.destroy();
+        charts.comparison = null;
+        return;
+      }
+
+      const currSales = filterSales(range).filter(s => !s.isReturned);
+      const prevSales = filterSales(prevRange).filter(s => !s.isReturned);
+
+      const currRevenue = currSales.reduce((s,x)=>s+(x.totalAmount||0),0);
+      const prevRevenue = prevSales.reduce((s,x)=>s+(x.totalAmount||0),0);
+
+      const currProfit = currSales.reduce((s,x)=>s+(x.profit||0),0);
+      const prevProfit = prevSales.reduce((s,x)=>s+(x.profit||0),0);
+
+      if (charts.comparison) charts.comparison.destroy();
+      const ctx = document.getElementById('chartComparison').getContext('2d');
+      charts.comparison = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['রেভিনিউ', 'গ্রস প্রফিট'],
+          datasets: [
+            { label: 'পূর্ববর্তী', data: [prevRevenue, prevProfit], backgroundColor: '#6366f1', borderRadius: 6 },
+            { label: 'বর্তমান', data: [currRevenue, currProfit], backgroundColor: '#06b6d4', borderRadius: 6 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#94a3b8', font: { family: 'Hind Siliguri', size: 11 }, boxWidth: 12 } },
+            tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ৳${Math.round(ctx.parsed.y).toLocaleString('en-IN')}` } }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', font: { size: 9 }, callback: v => '৳'+(v/1000>=1?(v/1000)+'k':v) }, grid: { color: '#1e293b' } }
+          }
+        }
+      });
+    }
+
+    // ============================================================
+    // ক্যাটাগরি চার্ট
+    // ============================================================
+    function renderCategoryChart(range) {
+      const sales = filterSales(range).filter(s => !s.isReturned);
+      const catMap = {};
+      sales.forEach(s => {
+        s.items.forEach(it => {
+          const cat = it.category || 'অন্যান্য';
+          if (!catMap[cat]) catMap[cat] = { qty:0, amount:0, profit:0 };
+          catMap[cat].qty += (it.qty||0);
+          catMap[cat].amount += (it.unitPrice||0) * (it.qty||0);
+          catMap[cat].profit += ((it.unitPrice||0) - (it.buyPrice||0)) * (it.qty||0);
+        });
+      });
+
+      const labels = Object.keys(catMap);
+      const data = labels.map(l => catMap[l].amount);
+      const colors = ['#06b6d4','#6366f1','#10b981','#f59e0b','#ec4899','#8b5cf6','#f43f5e','#14b8a6'];
+
+      if (charts.category) charts.category.destroy();
+      const ctx = document.getElementById('chartCategory').getContext('2d');
+      charts.category = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels.length ? labels : ['ডেটা নেই'],
+          datasets: [{ data: data.length?data:[1], backgroundColor: colors, borderWidth: 0 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '55%',
+          plugins: {
+            legend: { position: 'right', labels: { color: '#94a3b8', font: { family: 'Hind Siliguri', size: 10 }, boxWidth: 10 } },
+            tooltip: { callbacks: { label: ctx => `${ctx.label}: ৳${Math.round(ctx.parsed).toLocaleString('en-IN')}` } }
+          }
+        }
+      });
+
+      // টেবিল
+      const sorted = Object.entries(catMap).sort((a,b)=>b[1].amount-a[1].amount);
+      const totalAmt = sorted.reduce((s,x)=>s+x[1].amount,0);
+      document.getElementById('categoryTable').innerHTML = sorted.map(([cat, info], i) => {
+        const pct = totalAmt > 0 ? (info.amount/totalAmt*100) : 0;
+        return `<div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-lg p-2">
+          <span class="w-5 h-5 rounded bg-${['cyan','indigo','emerald','amber','pink','purple','rose','teal'][i%8]}-500/20 text-${['cyan','indigo','emerald','amber','pink','purple','rose','teal'][i%8]}-400 text-[9px] font-black flex items-center justify-center flex-shrink-0">${i+1}</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-[11px] font-bold text-white truncate">${escapeHtml(cat)}</p>
+            <p class="text-[9px] text-slate-500">${info.qty} পিস • ${pct.toFixed(1)}%</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="text-xs font-black text-cyan-400">${fmt(info.amount)}</p>
+            <p class="text-[9px] text-emerald-400">+${fmt(info.profit)}</p>
+          </div>
+        </div>`;
+      }).join('') || '<p class="text-center text-slate-500 text-[10px] py-2">ডেটা নেই</p>';
+    }
+
+    // ============================================================
+    // পেমেন্ট চার্ট
+    // ============================================================
+    function renderPaymentChart(range) {
+      const sales = filterSales(range).filter(s => !s.isReturned);
+      const payMap = { Cash:0, MFS:0, Card:0, Due:0 };
+      sales.forEach(s => { payMap[s.paymentMethod] = (payMap[s.paymentMethod]||0) + (s.totalAmount||0); });
+
+      const labels = ['ক্যাশ','বিকাশ/নগদ','কার্ড','বাকি'];
+      const data = [payMap.Cash, payMap.MFS, payMap.Card, payMap.Due];
+      const colors = ['#10b981','#ec4899','#06b6d4','#f59e0b'];
+
+      if (charts.payment) charts.payment.destroy();
+      const ctx = document.getElementById('chartPayment').getContext('2d');
+      charts.payment = new Chart(ctx, {
+        type: 'pie',
+        data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { color: '#94a3b8', font: { family: 'Hind Siliguri', size: 10 }, boxWidth: 10 } },
+            tooltip: { callbacks: { label: ctx => `${ctx.label}: ৳${Math.round(ctx.parsed).toLocaleString('en-IN')}` } }
+          }
+        }
+      });
+
+      // টেবিল
+      const total = data.reduce((s,x)=>s+x,0);
+      document.getElementById('paymentTable').innerHTML = labels.map((l, i) => {
+        const pct = total > 0 ? (data[i]/total*100) : 0;
+        return `<div class="bg-slate-950 border border-slate-800 rounded-lg p-2">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-bold" style="color:${colors[i]}">${l}</span>
+            <span class="text-[9px] text-slate-500">${pct.toFixed(1)}%</span>
+          </div>
+          <p class="text-xs font-black text-white mt-0.5">${fmt(data[i])}</p>
+        </div>`;
+      }).join('');
+    }
+
+    // ============================================================
+    // টপ প্রোডাক্ট
+    // ============================================================
+    function renderTopProductsChart(range) {
+      const sales = filterSales(range).filter(s => !s.isReturned);
+      const prodMap = {};
+      sales.forEach(s => s.items.forEach(it => {
+        const key = it.name || 'পণ্য';
+        if (!prodMap[key]) prodMap[key] = { name:key, qty:0, amount:0, profit:0, category: it.category||'' };
+        prodMap[key].qty += (it.qty||0);
+        prodMap[key].amount += (it.unitPrice||0)*(it.qty||0);
+        prodMap[key].profit += ((it.unitPrice||0)-(it.buyPrice||0))*(it.qty||0);
+      }));
+
+      const top10 = Object.values(prodMap).sort((a,b)=>b.amount-a.amount).slice(0,10);
+
+      if (charts.topProducts) charts.topProducts.destroy();
+      const ctx = document.getElementById('chartTopProducts').getContext('2d');
+      charts.topProducts = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: top10.length ? top10.map(p=>p.name.slice(0,15)) : ['ডেটা নেই'],
+          datasets: [{ label: 'বিক্রি', data: top10.length?top10.map(p=>p.amount):[0], backgroundColor: '#f59e0b', borderRadius: 4 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => `৳${Math.round(ctx.parsed.x).toLocaleString('en-IN')}` } }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8', font: { size: 9 }, callback: v => '৳'+(v/1000>=1?(v/1000)+'k':v) }, grid: { color: '#1e293b' } },
+            y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } }
+          }
+        }
+      });
+
+      document.getElementById('topProductsTable').innerHTML = top10.map((p,i) => `
+        <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-lg p-2">
+          <span class="w-5 h-5 rounded bg-orange-500/20 text-orange-400 text-[9px] font-black flex items-center justify-center flex-shrink-0">${i+1}</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-[11px] font-bold text-white truncate">${escapeHtml(p.name)}</p>
+            <p class="text-[9px] text-slate-500">${escapeHtml(p.category||'')} • ${p.qty} পিস</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="text-xs font-black text-amber-400">${fmt(p.amount)}</p>
+            <p class="text-[9px] text-emerald-400">+${fmt(p.profit)}</p>
+          </div>
+        </div>
+      `).join('') || '<p class="text-center text-slate-500 text-[10px] py-2">ডেটা নেই</p>';
+    }
+
+    // ============================================================
+    // টপ কাস্টমার
+    // ============================================================
+    function renderTopCustomersChart(range) {
+      const sales = filterSales(range).filter(s => !s.isReturned);
+      const custMap = {};
+      sales.forEach(s => {
+        const key = s.customerName || 'সাধারণ ক্রেতা';
+        if (!custMap[key]) custMap[key] = { name:key, count:0, amount:0, profit:0 };
+        custMap[key].count++;
+        custMap[key].amount += (s.totalAmount||0);
+        custMap[key].profit += (s.profit||0);
+      });
+
+      const top10 = Object.values(custMap).sort((a,b)=>b.amount-a.amount).slice(0,10);
+
+      if (charts.topCustomers) charts.topCustomers.destroy();
+      const ctx = document.getElementById('chartTopCustomers').getContext('2d');
+      charts.topCustomers = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: top10.length ? top10.map(c=>c.name.slice(0,15)) : ['ডেটা নেই'],
+          datasets: [{ label: 'মোট কেনা', data: top10.length?top10.map(c=>c.amount):[0], backgroundColor: '#6366f1', borderRadius: 4 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => `৳${Math.round(ctx.parsed.x).toLocaleString('en-IN')}` } }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8', font: { size: 9 }, callback: v => '৳'+(v/1000>=1?(v/1000)+'k':v) }, grid: { color: '#1e293b' } },
+            y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } }
+          }
+        }
+      });
+
+      document.getElementById('topCustomersTable').innerHTML = top10.map((c,i) => `
+        <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-lg p-2">
+          <span class="w-5 h-5 rounded bg-purple-500/20 text-purple-400 text-[9px] font-black flex items-center justify-center flex-shrink-0">${i+1}</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-[11px] font-bold text-white truncate">${escapeHtml(c.name)}</p>
+            <p class="text-[9px] text-slate-500">${c.count} টি লেনদেন</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="text-xs font-black text-indigo-400">${fmt(c.amount)}</p>
+            <p class="text-[9px] text-emerald-400">+${fmt(c.profit)}</p>
+          </div>
+        </div>
+      `).join('') || '<p class="text-center text-slate-500 text-[10px] py-2">ডেটা নেই</p>';
+    }
+
+    // ============================================================
+    // খরচ চার্ট
+    // ============================================================
+    function renderExpenseChart(range) {
+      const expenses = filterExpenses(range);
+      const business = expenses.filter(e => e.type !== 'personal' && e.category !== 'মাল নষ্ট/ড্যামেজ');
+      const personal = expenses.filter(e => e.type === 'personal');
+
+      const expMap = {};
+      business.forEach(e => {
+        const cat = e.category || 'অন্যান্য';
+        expMap[cat] = (expMap[cat]||0) + (e.amount||0);
+      });
+
+      const labels = Object.keys(expMap);
+      const data = labels.map(l => expMap[l]);
+      const colors = ['#f43f5e','#f97316','#eab308','#a855f7','#06b6d4','#10b981','#8b5cf6','#ec4899'];
+
+      if (charts.expense) charts.expense.destroy();
+      const ctx = document.getElementById('chartExpense').getContext('2d');
+      charts.expense = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: labels.length?labels:['খরচ নেই'], datasets: [{ data: data.length?data:[1], backgroundColor: colors, borderWidth: 0 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '55%',
+          plugins: {
+            legend: { position: 'right', labels: { color: '#94a3b8', font: { family: 'Hind Siliguri', size: 10 }, boxWidth: 10 } },
+            tooltip: { callbacks: { label: ctx => `${ctx.label}: ৳${Math.round(ctx.parsed).toLocaleString('en-IN')}` } }
+          }
+        }
+      });
+
+      const totalBiz = business.reduce((s,e)=>s+(e.amount||0),0);
+      const totalPersonal = personal.reduce((s,e)=>s+(e.amount||0),0);
+      document.getElementById('expBusiness').innerText = fmt(totalBiz);
+      document.getElementById('expPersonal').innerText = fmt(totalPersonal);
+
+      const sorted = Object.entries(expMap).sort((a,b)=>b[1]-a[1]);
+      document.getElementById('expenseTable').innerHTML = sorted.map(([cat, amt]) => {
+        const pct = totalBiz > 0 ? (amt/totalBiz*100) : 0;
+        return `<div class="flex items-center justify-between bg-slate-950 border border-slate-800 rounded-lg p-2">
+          <div class="flex-1 min-w-0">
+            <p class="text-[11px] font-bold text-white truncate">${escapeHtml(cat)}</p>
+            <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden mt-1">
+              <div class="h-full bg-rose-500 rounded-full" style="width:${pct}%"></div>
+            </div>
+          </div>
+          <div class="text-right ml-2 flex-shrink-0">
+            <p class="text-xs font-black text-rose-400">${fmt(amt)}</p>
+            <p class="text-[9px] text-slate-500">${pct.toFixed(1)}%</p>
+          </div>
+        </div>`;
+      }).join('') || '<p class="text-center text-slate-500 text-[10px] py-2">খরচ নেই</p>';
+    }
+
+    // ============================================================
+    // ক্যাশ ফ্লো
+    // ============================================================
+    function renderCashFlow(range) {
+      let inflow = 0, outflow = 0;
+
+      // Sales cash
+      filterSales(range).filter(s => !s.isReturned && s.paymentMethod !== 'Due').forEach(s => inflow += (s.totalAmount||0));
+
+      // Customer collections
+      db.dues.forEach(d => {
+        if (d.payments) d.payments.forEach(p => {
+          if (p.date >= range.from && p.date <= range.to) inflow += (p.amount||0);
+        });
+      });
+
+      // Capital deposits
+      db.capital.filter(c => !c.isCancelled && c.type === 'deposit' && c.date >= range.from && c.date <= range.to).forEach(c => inflow += (c.amount||0));
+
+      // Expenses
+      filterExpenses(range).forEach(e => outflow += (e.amount||0));
+
+      // Supplier payments
+      db.payables.forEach(p => {
+        if (p.payments) p.payments.forEach(pay => {
+          if (pay.date >= range.from && pay.date <= range.to) outflow += (pay.amount||0);
+        });
+      });
+
+      // Capital withdraw
+      db.capital.filter(c => !c.isCancelled && c.type === 'withdraw' && c.date >= range.from && c.date <= range.to).forEach(c => outflow += (c.amount||0));
+
+      const net = inflow - outflow;
+
+      // Current balance (all accounts)
+      let totalBalance = 0;
+      db.accounts.forEach(a => { totalBalance += getAccountBalance(a.id); });
+
+      document.getElementById('cashInflow').innerText = fmt(inflow);
+      document.getElementById('cashOutflow').innerText = fmt(outflow);
+      document.getElementById('cashNetFlow').innerText = fmt(net);
+      document.getElementById('cashCurrentBalance').innerText = fmt(totalBalance);
+
+      const netEl = document.getElementById('cashNetFlow');
+      netEl.className = 'font-black ' + (net >= 0 ? 'text-cyan-400' : 'text-rose-400');
+    }
+
+    function getAccountBalance(accId) {
+      const acc = db.accounts.find(a => a.id === accId);
+      if (!acc) return 0;
+      let bal = acc.startingBalance || 0;
+
+      const salesMap = { Cash:'cash', MFS:'bkash', Card:'bank' };
+      db.sales.filter(s => !s.isCancelled && !s.isReturned).forEach(s => {
+        if (salesMap[s.paymentMethod] === accId) bal += (s.totalAmount||0);
+      });
+
+      db.dues.forEach(d => {
+        if (d.payments) d.payments.forEach(p => { if (p.accountId === accId) bal += (p.amount||0); });
+      });
+      db.payables.forEach(p => {
+        if (p.payments) p.payments.forEach(pay => { if (pay.accountId === accId) bal -= (pay.amount||0); });
+      });
+      db.expenses.filter(e => !e.isCancelled).forEach(e => {
+        if ((e.cashAccount||'cash') === accId) bal -= (e.amount||0);
+      });
+      db.capital.filter(c => !c.isCancelled).forEach(c => {
+        if (c.accountId === accId) {
+          if (c.type === 'deposit') bal += (c.amount||0);
+          else if (c.type === 'withdraw') bal -= (c.amount||0);
+        }
+      });
+      db.cashTx.filter(t => !t.isCancelled && t.type === 'transfer').forEach(t => {
+        if (t.fromAccount === accId) bal -= (t.amount||0);
+        if (t.toAccount === accId) bal += (t.amount||0);
+      });
+
+      return bal;
+    }
+
+    // ============================================================
+    // এজিং
+    // ============================================================
+    function renderAgingAnalysis() {
+      const today = new Date();
+
+      // Receivables
+      const recvAge = { 0:0, 30:0, 60:0, 90:0 };
+      db.dues.filter(d => !d.isCancelled).forEach(d => {
+        const due = (d.amount||0) - (d.paidAmount||0);
+        if (due > 0) {
+          const days = d.date ? Math.floor((today - new Date(d.date)) / (1000*60*60*24)) : 0;
+          if (days < 30) recvAge[0] += due;
+          else if (days < 60) recvAge[30] += due;
+          else if (days < 90) recvAge[60] += due;
+          else recvAge[90] += due;
+        }
+      });
+
+      document.getElementById('recvAge0').innerText = fmt(recvAge[0]);
+      document.getElementById('recvAge30').innerText = fmt(recvAge[30]);
+      document.getElementById('recvAge60').innerText = fmt(recvAge[60]);
+      document.getElementById('recvAge90').innerText = fmt(recvAge[90]);
+
+      // Payables
+      const payAge = { 0:0, 30:0, 60:0, 90:0 };
+      db.payables.filter(p => !p.isCancelled).forEach(p => {
+        const due = (p.amount||0) - (p.paidAmount||0);
+        if (due > 0) {
+          const days = p.date ? Math.floor((today - new Date(p.date)) / (1000*60*60*24)) : 0;
+          if (days < 30) payAge[0] += due;
+          else if (days < 60) payAge[30] += due;
+          else if (days < 90) payAge[60] += due;
+          else payAge[90] += due;
+        }
+      });
+
+      document.getElementById('payAge0').innerText = fmt(payAge[0]);
+      document.getElementById('payAge30').innerText = fmt(payAge[30]);
+      document.getElementById('payAge60').innerText = fmt(payAge[60]);
+      document.getElementById('payAge90').innerText = fmt(payAge[90]);
+    }
+
+    // ============================================================
+    // ইনভেন্টরি
+    // ============================================================
+    function renderInventoryReport() {
+      const totalStock = db.products.reduce((s,p)=>s+(p.qty||0),0);
+      const stockValue = db.products.reduce((s,p)=>s+(p.qty||0)*(p.buyPrice||0),0);
+      document.getElementById('invTotalStock').innerText = totalStock + ' পিস';
+      document.getElementById('invStockValue').innerText = fmt(stockValue);
+
+      // ফাস্ট/স্লো মুভিং (সর্বশেষ ৩০ দিন)
+      const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-30);
+      const cutoffStr = cutoff.toISOString().split('T')[0];
+      const recentSales = db.sales.filter(s => !s.isReturned && s.date >= cutoffStr);
+
+      const productSales = {};
+      recentSales.forEach(s => s.items.forEach(it => {
+        const key = it.productId || it.name;
+        productSales[key] = (productSales[key]||0) + (it.qty||0);
+      }));
+
+      const withMovement = db.products.map(p => ({
+        ...p,
+        movedQty: productSales[p.id] || productSales[p.name] || 0
+      }));
+
+      const fast = withMovement.filter(p => p.movedQty > 0).sort((a,b)=>b.movedQty-a.movedQty).slice(0,5);
+      const slow = withMovement.filter(p => p.qty > 0 && p.movedQty === 0).sort((a,b)=>b.qty-a.qty).slice(0,5);
+
+      document.getElementById('fastMoving').innerHTML = fast.map(p => `
+        <div class="flex justify-between bg-slate-950 border border-emerald-500/20 rounded p-1.5">
+          <span class="text-slate-300 truncate flex-1">${escapeHtml(p.name)}</span>
+          <span class="text-emerald-400 font-bold ml-1">${p.movedQty}</span>
+        </div>
+      `).join('') || '<p class="text-center text-slate-500 text-[9px] py-1">ডেটা নেই</p>';
+
+      document.getElementById('slowMoving').innerHTML = slow.map(p => `
+        <div class="flex justify-between bg-slate-950 border border-slate-800 rounded p-1.5">
+          <span class="text-slate-300 truncate flex-1">${escapeHtml(p.name)}</span>
+          <span class="text-slate-500 font-bold ml-1">${p.qty}</span>
+        </div>
+      `).join('') || '<p class="text-center text-slate-500 text-[9px] py-1">ডেটা নেই</p>';
+    }
+
+    // ============================================================
+    // ড্যামেজ রিপোর্ট
+    // ============================================================
+    function renderDamageReport(range) {
+      const damages = filterDamages(range);
+      const totalLoss = damages.reduce((s,d)=>s+(d.lossAmount||0),0);
+      const totalItems = damages.reduce((s,d)=>s+(d.qty||0),0);
+
+      document.getElementById('dmgTotalLoss').innerText = fmt(totalLoss);
+      document.getElementById('dmgTotalItems').innerText = totalItems + ' পিস';
+
+      const reasonMap = {};
+      damages.forEach(d => {
+        const reason = d.reason || 'অন্যান্য';
+        reasonMap[reason] = (reasonMap[reason]||0) + (d.lossAmount||0);
+      });
+
+      const sorted = Object.entries(reasonMap).sort((a,b)=>b[1]-a[1]);
+      document.getElementById('dmgByReason').innerHTML = sorted.map(([reason, amt]) => `
+        <div class="flex justify-between bg-slate-950 border border-rose-500/20 rounded p-2">
+          <span class="text-slate-300">${escapeHtml(reason)}</span>
+          <span class="text-rose-400 font-bold">${fmt(amt)}</span>
+        </div>
+      `).join('') || '<p class="text-center text-slate-500 text-[10px] py-2">ড্যামেজ নেই</p>';
+    }
+
+    // ============================================================
+    // হেলথ স্কোর
+    // ============================================================
+    function renderHealthScore(range) {
+      const sales = filterSales(range).filter(s => !s.isReturned);
+      const revenue = sales.reduce((s,x)=>s+(x.totalAmount||0),0);
+      const grossProfit = sales.reduce((s,x)=>s+(x.profit||0),0);
+
+      const expenses = filterExpenses(range).filter(e => e.type !== 'personal');
+      const opExp = expenses.filter(e => e.category !== 'মাল নষ্ট/ড্যামেজ').reduce((s,e)=>s+(e.amount||0),0);
+      const dmgLoss = filterDamages(range).reduce((s,d)=>s+(d.lossAmount||0),0);
+      const netProfit = grossProfit - opExp - dmgLoss;
+
+      const margin = revenue > 0 ? (netProfit / revenue * 100) : 0;
+      const grossMargin = revenue > 0 ? (grossProfit / revenue * 100) : 0;
+      const expenseRatio = revenue > 0 ? (opExp / revenue * 100) : 100;
+      const damageRatio = revenue > 0 ? (dmgLoss / revenue * 100) : 0;
+
+      // receivables collection rate
+      let totalDue = 0, paidDue = 0;
+      db.dues.filter(d => !d.isCancelled).forEach(d => {
+        totalDue += (d.amount||0);
+        paidDue += (d.paidAmount||0);
+      });
+      const collectionRate = totalDue > 0 ? (paidDue / totalDue * 100) : 100;
+
+      // stock turnover
+      const stockValue = db.products.reduce((s,p)=>s+(p.qty||0)*(p.buyPrice||0),0);
+      const turnoverRatio = stockValue > 0 ? (revenue / stockValue) : 0;
+      const turnoverScore = Math.min(100, turnoverRatio * 20);
+
+      // Scores
+      const scores = {
+        'প্রফিট মার্জিন': Math.max(0, Math.min(100, margin * 3)),
+        'গ্রস মার্জিন': Math.max(0, Math.min(100, grossMargin * 2)),
+        'খরচ নিয়ন্ত্রণ': Math.max(0, Math.min(100, 100 - expenseRatio * 2)),
+        'ড্যামেজ নিয়ন্ত্রণ': Math.max(0, Math.min(100, 100 - damageRatio * 10)),
+        'কালেকশন রেট': Math.min(100, collectionRate),
+        'স্টক টার্নওভার': turnoverScore
+      };
+
+      const totalScore = Object.values(scores).reduce((s,v)=>s+v,0) / Object.keys(scores).length;
+      document.getElementById('healthScore').innerText = Math.round(totalScore);
+      const healthEl = document.getElementById('healthScore');
+      healthEl.className = 'text-2xl font-black ' + (totalScore >= 70 ? 'text-emerald-400' : totalScore >= 50 ? 'text-amber-400' : 'text-rose-400');
+
+      // Radar chart
+      if (charts.health) charts.health.destroy();
+      const ctx = document.getElementById('chartHealth').getContext('2d');
+      charts.health = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: Object.keys(scores),
+          datasets: [{
+            label: 'স্কোর',
+            data: Object.values(scores),
+            backgroundColor: 'rgba(139,92,246,0.25)',
+            borderColor: '#8b5cf6',
+            borderWidth: 2,
+            pointBackgroundColor: '#8b5cf6',
+            pointBorderColor: '#fff',
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              beginAtZero: true, max: 100,
+              ticks: { color: '#64748b', font: { size: 8 }, stepSize: 20, backdropColor: 'transparent' },
+              grid: { color: '#334155' },
+              angleLines: { color: '#334155' },
+              pointLabels: { color: '#94a3b8', font: { family: 'Hind Siliguri', size: 10 } }
+            }
+          }
+        }
+      });
+
+      // ইনসাইট
+      const insights = [];
+      if (margin >= 20) insights.push({ type:'good', text:'✅ চমৎকার প্রফিট মার্জিন!' });
+      else if (margin >= 10) insights.push({ type:'ok', text:'⚠️ প্রফিট মার্জিন ঠিক আছে, বাড়ানোর সুযোগ আছে' });
+      else if (margin >= 0) insights.push({ type:'warn', text:'⚠️ প্রফিট মার্জিন কম, খরচ কমান' });
+      else insights.push({ type:'bad', text:'🔴 লোকসান হচ্ছে, দ্রুত ব্যবস্থা নিন' });
+
+      if (expenseRatio > 40) insights.push({ type:'warn', text:'⚠️ অপারেটিং খরচ বেশি (' + expenseRatio.toFixed(1) + '%)' });
+      if (damageRatio > 3) insights.push({ type:'warn', text:'⚠️ ড্যামেজ লস বেশি (' + damageRatio.toFixed(1) + '%)' });
+      if (collectionRate < 70) insights.push({ type:'warn', text:'⚠️ বাকি আদায় কম (' + collectionRate.toFixed(1) + '%)' });
+      if (turnoverRatio < 1) insights.push({ type:'info', text:'ℹ️ স্টক টার্নওভার কম, স্লো মুভিং পণ্য দেখুন' });
+
+      document.getElementById('healthInsights').innerHTML = insights.map(i => {
+        const colors = { good:'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', ok:'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', warn:'text-amber-400 bg-amber-500/10 border-amber-500/20', bad:'text-rose-400 bg-rose-500/10 border-rose-500/20', info:'text-slate-400 bg-slate-800/50 border-slate-700' };
+        return `<div class="p-2 rounded-lg border ${colors[i.type]||colors.info}">${i.text}</div>`;
+      }).join('');
+    }
+
+    // ============================================================
+    // এক্সপোর্ট
+    // ============================================================
+    function openExportModal() { openModal('exportModal'); }
+
+    function downloadFullPDF() {
+      toast('📥 PDF তৈরি হচ্ছে...','info');
+      const el = document.getElementById('printArea');
+      html2pdf().set({
+        margin: [5, 5, 5, 5],
+        filename: `TalhaTech_Report_${todayStr()}.pdf`,
+        image: { type:'jpeg', quality:0.95 },
+        html2canvas: { scale:2, useCORS:true, backgroundColor:'#070b14', scrollY:0 },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+        pagebreak: { mode:['avoid-all','css','legacy'] }
+      }).from(el).save();
+    }
+
+    function exportAllCSV() {
+      const range = getDateRange();
+      const sales = filterSales(range);
+      const expenses = filterExpenses(range);
+      const damages = filterDamages(range);
+
+      const rows = [['Talha Tech - সম্পূর্ণ রিপোর্ট'], ['পিরিয়ড', `${range.from} → ${range.to}`], ['তৈরি', new Date().toLocaleString('bn-BD')], ['']];
+      
+      // Sales
+      rows.push(['=== বিক্রি ===']);
+      rows.push(['মেমো','তারিখ','কাস্টমার','পেমেন্ট','মোট','লাভ']);
+      sales.forEach(s => rows.push([s.invoiceId, s.date, s.customerName, s.paymentMethod, s.totalAmount, s.profit]));
+
+      // Expenses
+      rows.push(['']);
+      rows.push(['=== খরচ ===']);
+      rows.push(['নাম','ক্যাটাগরি','তারিখ','পরিমাণ','ধরন']);
+      expenses.forEach(e => rows.push([e.name||e.category, e.category, e.date, e.amount, e.type||'business']));
+
+      // Damages
+      rows.push(['']);
+      rows.push(['=== ড্যামেজ ===']);
+      rows.push(['পণ্য','পরিমাণ','কারণ','তারিখ','লস']);
+      damages.forEach(d => rows.push([d.productName, d.qty, d.reason, d.date, d.lossAmount]));
+
+      const csv = rows.map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+      const blob = new Blob(['\uFEFF'+csv], { type:'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `TalhaTech_Report_${todayStr()}.csv`;
+      a.click();
+      toast(`✅ রিপোর্ট এক্সপোর্ট হয়েছে`);
+    }
+
+    function printReport() {
+      window.print();
+    }
+
+    function shareReport() {
+      const range = getDateRange();
+      const sales = filterSales(range).filter(s => !s.isReturned);
+      const revenue = sales.reduce((s,x)=>s+(x.totalAmount||0),0);
+      const grossProfit = sales.reduce((s,x)=>s+(x.profit||0),0);
+      const expenses = filterExpenses(range).filter(e => e.type !== 'personal');
+      const opExp = expenses.filter(e => e.category !== 'মাল নষ্ট/ড্যামেজ').reduce((s,e)=>s+(e.amount||0),0);
+      const dmgLoss = filterDamages(range).reduce((s,d)=>s+(d.lossAmount||0),0);
+      const netProfit = grossProfit - opExp - dmgLoss;
+
+      const text = `📊 Talha Tech - বিজনেস রিপোর্ট\n━━━━━━━━━━━━━━━━━\n📅 ${range.from} → ${range.to}\n\n💰 রেভিনিউ: ${fmt(revenue)}\n📈 গ্রস প্রফিট: ${fmt(grossProfit)}\n💸 খরচ: ${fmt(opExp + dmgLoss)}\n✅ নিট লাভ: ${fmt(netProfit)}\n📋 লেনদেন: ${sales.length} টি\n\n📞 01516513987\nTalha Tech`;
+
+      if (navigator.share) {
+        navigator.share({ title:'Talha Tech Report', text }).catch(()=>{});
+      } else {
+        navigator.clipboard.writeText(text).then(()=>toast('✅ কপি হয়েছে — WhatsApp-এ পেস্ট করুন'));
+      }
+    }
+
+    // ============================================================
+    // গুগল শিট সিঙ্ক
+    // ============================================================
+    function fetchLiveData(manual) {
+      const btn = document.getElementById('btnSync');
+      const txt = document.getElementById('syncText');
+      const pulse = document.getElementById('syncPulse');
+      if (btn) btn.innerHTML = '<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> সিঙ্ক';
+      if (txt) txt.innerText = 'সিঙ্ক...';
+      if (pulse) pulse.className = 'w-2 h-2 rounded-full bg-amber-400 pulse-dot';
+      lucide.createIcons();
+
+      const cb = 'gs_'+Date.now();
+      const s = document.createElement('script');
+      let done = false;
+      const cleanup = () => { delete window[cb]; if (s.parentNode) s.parentNode.removeChild(s); };
+
+      window[cb] = (data) => {
+        if (done) return; done = true; cleanup();
+        if (data && data.status === 'success') {
+          if (Array.isArray(data.sales)) { db.sales = data.sales; localStorage.setItem(KEYS.sales, JSON.stringify(db.sales)); }
+          if (Array.isArray(data.products)) { db.products = data.products; localStorage.setItem(KEYS.products, JSON.stringify(db.products)); }
+          if (Array.isArray(data.expenses)) { db.expenses = data.expenses; localStorage.setItem(KEYS.expenses, JSON.stringify(db.expenses)); }
+          if (Array.isArray(data.damages)) { db.damages = data.damages; localStorage.setItem(KEYS.damages, JSON.stringify(db.damages)); }
+          if (Array.isArray(data.dues)) { db.dues = data.dues; localStorage.setItem(KEYS.dues, JSON.stringify(db.dues)); }
+
+          if (txt) txt.innerText = 'লাইভ';
+          if (pulse) pulse.className = 'w-2 h-2 rounded-full bg-emerald-400';
+          renderAll();
+          if (manual) toast('✅ ডেটা লোড হয়েছে');
+        }
+        if (btn) btn.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>সিঙ্ক</span>';
+        lucide.createIcons();
+      };
+      s.onerror = () => {
+        if (done) return; done = true; cleanup();
+        if (btn) btn.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-400"></span><span>অফলাইন</span>';
+        if (txt) txt.innerText = 'সিঙ্ক';
+        if (pulse) pulse.className = 'w-2 h-2 rounded-full bg-rose-400';
+        lucide.createIcons();
+      };
+      s.src = `${GOOGLE_SCRIPT_URL}?callback=${cb}`;
+      document.body.appendChild(s);
+      setTimeout(() => { if (!done) { done = true; cleanup(); } }, 6000);
+    }
+
+    // ============================================================
+    // ইনিশিয়ালাইজ
+    // ============================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadDB();
+      setPeriod('all');
+      lucide.createIcons();
+      setTimeout(() => fetchLiveData(false), 800);
+    });
+
+    document.addEventListener('click', (e) => {
+      ['customRangeModal','exportModal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.classList.contains('hidden') && e.target === el) closeModal(id);
+      });
+    });
+  </script>
+</body>
+</html>

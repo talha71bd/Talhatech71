@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Talha Tech - মাস্টার ড্যাশবোর্ড</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&display=swap');
+    * { font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .animate-fade-in { animation: fadeIn 0.2s ease-out; }
+    @keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .pulse-dot { animation: pulseDot 1.5s infinite; }
+    @keyframes countPop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .animate-count { animation: countPop 0.5s ease-out; }
+    input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+    .glass { background: rgba(15,23,42,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    .card-hover { transition: all 0.2s ease; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    .gradient-text { background: linear-gradient(135deg, #06b6d4, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    @media print { .no-print { display: none !important; } }
+    
+    /* বটম নেভিগেশনের জন্য বডিতে প্যাডিং */
+    body { padding-bottom: 75px; }
+  </style>
+</head>
+<body class="bg-[#070b14] text-slate-100 antialiased select-none text-sm min-h-screen">
+
+  <!-- ================= হেডার ================= -->
+  <header class="glass border-b border-slate-800/80 sticky top-0 z-30 shadow-lg">
+    <div class="max-w-3xl mx-auto px-4 py-3">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-2.5">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 animate-count">
+            <i data-lucide="smartphone" class="w-6 h-6 text-white"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h1 class="text-base font-black tracking-wide text-white leading-tight">Talha Tech</h1>
+              <span class="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 text-[9px] font-bold px-1.5 py-0.5 rounded border border-cyan-500/30">PRO</span>
+            </div>
+            <p class="text-[10px] text-cyan-400 font-semibold">কারওয়ান বাজার • বসুন্ধরা • পান্থপথ</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button onclick="fetchLiveData(true)" id="btnSync" class="bg-emerald-950/70 hover:bg-emerald-900/90 text-emerald-400 border border-emerald-500/40 px-2.5 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1 shadow active:scale-95 transition">
+            <span class="w-2 h-2 rounded-full bg-emerald-400" id="syncPulse"></span>
+            <span id="syncText">সিঙ্ক</span>
+          </button>
+          <button onclick="openSettingsMenu()" class="bg-slate-800/80 hover:bg-slate-700 text-slate-300 p-2 rounded-xl border border-slate-700/80 active:scale-95 transition">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ওয়েলকাম + ডেট -->
+      <div class="mt-3 bg-gradient-to-r from-indigo-950/60 via-purple-950/40 to-slate-900 border border-indigo-500/30 rounded-2xl p-3 flex justify-between items-center">
+        <div>
+          <p class="text-[10px] text-indigo-300 font-bold">স্বাগতম,</p>
+          <p class="text-sm font-black text-white">মোঃ আবু তালহা</p>
+          <p class="text-[9px] text-slate-400 mt-0.5" id="greetingText">শুভ সকাল ☀️</p>
+        </div>
+        <div class="text-right">
+          <p class="text-[10px] text-slate-400" id="currentDateText">--</p>
+          <p class="text-xs font-black text-cyan-400" id="currentTimeText">--</p>
+          <p class="text-[9px] text-emerald-400 font-bold mt-0.5">
+            <i data-lucide="phone-call" class="w-2.5 h-2.5 inline"></i> 01516513987
+          </p>
+        </div>
+      </div>
+
+      <!-- ডেট ফিল্টার -->
+      <div class="flex gap-1 mt-3 overflow-x-auto no-scrollbar pb-0.5">
+        <button onclick="setDateFilter('today')" data-filter="today" class="filter-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">আজ</button>
+        <button onclick="setDateFilter('yesterday')" data-filter="yesterday" class="filter-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">গতকাল</button>
+        <button onclick="setDateFilter('week')" data-filter="week" class="filter-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">৭ দিন</button>
+        <button onclick="setDateFilter('month')" data-filter="month" class="filter-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">৩০ দিন</button>
+        <button onclick="setDateFilter('thisMonth')" data-filter="thisMonth" class="filter-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">এই মাস</button>
+        <button onclick="setDateFilter('lastMonth')" data-filter="lastMonth" class="filter-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">গত মাস</button>
+        <button onclick="setDateFilter('year')" data-filter="year" class="filter-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">এই বছর</button>
+        <button onclick="setDateFilter('all')" data-filter="all" class="filter-btn bg-cyan-600 text-slate-950 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">সব</button>
+        <button onclick="openCustomRange()" class="bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">
+          <i data-lucide="calendar" class="w-3 h-3 inline"></i> কাস্টম
+        </button>
+      </div>
+      <p class="text-[10px] text-slate-500 mt-1.5 text-center" id="filterLabel">সব সময়ের ডেটা</p>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto p-3.5 space-y-3.5">
+
+    <!-- ============== কুইক অ্যাকশন ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+        <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i> কুইক অ্যাকশন
+      </h2>
+      <div class="grid grid-cols-4 gap-1.5">
+        <a href="pos.html" class="bg-gradient-to-br from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition shadow-lg shadow-cyan-600/30">
+          <i data-lucide="shopping-cart" class="w-5 h-5 text-white"></i>
+          <span class="text-[9px] font-black text-white text-center leading-tight">নতুন<br>বিক্রি</span>
+        </a>
+        <a href="inventory.html" class="bg-gradient-to-br from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition shadow-lg shadow-indigo-600/30">
+          <i data-lucide="package-plus" class="w-5 h-5 text-white"></i>
+          <span class="text-[9px] font-black text-white text-center leading-tight">মাল<br>এন্ট্রি</span>
+        </a>
+        <a href="expenses.html" class="bg-gradient-to-br from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition shadow-lg shadow-rose-600/30">
+          <i data-lucide="receipt" class="w-5 h-5 text-white"></i>
+          <span class="text-[9px] font-black text-white text-center leading-tight">খরচ<br>যোগ</span>
+        </a>
+        <a href="products.html" class="bg-gradient-to-br from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition shadow-lg shadow-emerald-600/30">
+          <i data-lucide="boxes" class="w-5 h-5 text-white"></i>
+          <span class="text-[9px] font-black text-white text-center leading-tight">সব<br>পণ্য</span>
+        </a>
+      </div>
+      <div class="grid grid-cols-4 gap-1.5 mt-1.5">
+        <a href="history.html" class="bg-slate-800 hover:bg-slate-700 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="history" class="w-4 h-4 text-slate-300"></i>
+          <span class="text-[9px] font-bold text-slate-300 text-center leading-tight">হিস্ট্রি</span>
+        </a>
+        <a href="reports.html" class="bg-slate-800 hover:bg-slate-700 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="bar-chart-3" class="w-4 h-4 text-slate-300"></i>
+          <span class="text-[9px] font-bold text-slate-300 text-center leading-tight">রিপোর্ট</span>
+        </a>
+        <a href="expenses.html#cashbook" class="bg-slate-800 hover:bg-slate-700 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="wallet" class="w-4 h-4 text-slate-300"></i>
+          <span class="text-[9px] font-bold text-slate-300 text-center leading-tight">ক্যাশবুক</span>
+        </a>
+        <a href="expenses.html#receivables" class="bg-slate-800 hover:bg-slate-700 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="users" class="w-4 h-4 text-slate-300"></i>
+          <span class="text-[9px] font-bold text-slate-300 text-center leading-tight">বাকি</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ============== আজকের সারাংশ ============== -->
+    <section>
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
+          <i data-lucide="sun" class="w-4 h-4 text-amber-400"></i> <span id="summaryTitle">আজকের সারাংশ</span>
+        </h2>
+        <span class="text-[10px] text-slate-500" id="summaryDate">--</span>
+      </div>
+
+      <!-- মূল ৬টি কার্ড -->
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <div onclick="goTo('pos.html')" class="card-hover bg-gradient-to-br from-cyan-950/60 to-slate-900 border border-cyan-500/30 rounded-2xl p-3 cursor-pointer active:scale-99">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="shopping-bag" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span class="text-[10px] font-bold text-cyan-300">মোট বিক্রি</span>
+          </div>
+          <p class="text-2xl font-black text-white animate-count" id="kpiSales">৳০</p>
+          <p class="text-[9px] text-slate-500 mt-0.5" id="kpiSalesSub">০ টি লেনদেন</p>
+          <p class="text-[9px] font-bold mt-1" id="kpiSalesGrowth">--</p>
+        </div>
+
+        <div onclick="goTo('reports.html')" class="card-hover bg-gradient-to-br from-emerald-950/60 to-slate-900 border border-emerald-500/30 rounded-2xl p-3 cursor-pointer active:scale-99">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span class="text-[10px] font-bold text-emerald-300">নিট লাভ</span>
+          </div>
+          <p class="text-2xl font-black text-emerald-400 animate-count" id="kpiProfit">৳০</p>
+          <p class="text-[9px] text-slate-500 mt-0.5" id="kpiProfitSub">মার্জিন: ০%</p>
+          <p class="text-[9px] font-bold mt-1" id="kpiProfitGrowth">--</p>
+        </div>
+
+        <div onclick="goTo('expenses.html')" class="card-hover bg-gradient-to-br from-rose-950/60 to-slate-900 border border-rose-500/30 rounded-2xl p-3 cursor-pointer active:scale-99">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="trending-down" class="w-3.5 h-3.5 text-rose-400"></i>
+            <span class="text-[10px] font-bold text-rose-300">মোট খরচ</span>
+          </div>
+          <p class="text-2xl font-black text-rose-400 animate-count" id="kpiExpense">৳০</p>
+          <p class="text-[9px] text-slate-500 mt-0.5" id="kpiExpenseSub">ব্যবসা + ড্যামেজ</p>
+        </div>
+
+        <div onclick="goTo('expenses.html#cashbook')" class="card-hover bg-gradient-to-br from-amber-950/60 to-slate-900 border border-amber-500/30 rounded-2xl p-3 cursor-pointer active:scale-99">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="wallet" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span class="text-[10px] font-bold text-amber-300">ক্যাশ ব্যালেন্স</span>
+          </div>
+          <p class="text-2xl font-black text-amber-400 animate-count" id="kpiCash">৳০</p>
+          <p class="text-[9px] text-slate-500 mt-0.5" id="kpiCashSub">সব অ্যাকাউন্ট</p>
+        </div>
+      </div>
+
+      <!-- সেকেন্ডারি কার্ডস -->
+      <div class="grid grid-cols-4 gap-1.5">
+        <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">মেমো</p>
+          <p class="text-sm font-black text-white" id="kpiInvoices">০</p>
+        </div>
+        <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">পিস</p>
+          <p class="text-sm font-black text-cyan-400" id="kpiItems">০</p>
+        </div>
+        <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">কাস্টমার</p>
+          <p class="text-sm font-black text-indigo-400" id="kpiCustomers">০</p>
+        </div>
+        <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">গড় বিল</p>
+          <p class="text-sm font-black text-emerald-400" id="kpiAvg">৳০</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== লাভ-ক্ষতি বিশ্লেষণ ============== -->
+    <section class="bg-gradient-to-br from-indigo-950/60 via-purple-950/40 to-slate-900 border border-indigo-500/40 rounded-2xl p-3 shadow-lg">
+      <h2 class="text-xs font-black text-white mb-2 flex items-center gap-1.5">
+        <i data-lucide="calculator" class="w-4 h-4 text-cyan-400"></i> লাভ-ক্ষতি বিশ্লেষণ
+      </h2>
+
+      <div class="space-y-1.5 text-xs">
+        <div class="flex justify-between py-1.5 border-b border-slate-700/50">
+          <span class="text-slate-300">বিক্রয় (রিটার্ন বাদ)</span>
+          <span class="font-black text-white" id="plSales">৳০</span>
+        </div>
+        <div class="flex justify-between py-1.5 border-b border-slate-700/50">
+          <span class="text-slate-300">পণ্যের ক্রয়মূল্য (COGS)</span>
+          <span class="font-bold text-amber-400" id="plCOGS">৳০</span>
+        </div>
+        <div class="flex justify-between py-1.5 bg-emerald-500/10 px-2 rounded-lg border border-emerald-500/20">
+          <span class="font-black text-emerald-300">গ্রস প্রফিট</span>
+          <span class="font-black text-emerald-400" id="plGrossProfit">৳০</span>
+        </div>
+        <div class="flex justify-between py-1.5 border-b border-slate-700/50">
+          <span class="text-slate-300">ব্যবসায়িক খরচ</span>
+          <span class="font-bold text-rose-400" id="plExpenses">৳০</span>
+        </div>
+        <div class="flex justify-between py-1.5 border-b border-slate-700/50">
+          <span class="text-slate-300">ড্যামেজ লস</span>
+          <span class="font-bold text-red-400" id="plDamage">৳০</span>
+        </div>
+        <div class="mt-2 p-2.5 rounded-lg" id="plNetBox">
+          <div class="flex justify-between items-center">
+            <span class="font-black text-sm" id="plNetLabel">নিট লাভ</span>
+            <span class="font-black text-lg" id="plNet">৳০</span>
+          </div>
+          <div class="flex justify-between text-[10px] mt-1 opacity-70">
+            <span>নিট মার্জিন</span>
+            <span id="plMargin">০%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- পেমেন্ট ব্রেকডাউন -->
+      <div class="grid grid-cols-2 gap-1.5 mt-2">
+        <div class="bg-slate-950/60 border border-emerald-500/20 rounded-lg p-2">
+          <p class="text-[9px] text-slate-500 font-bold">ক্যাশ</p>
+          <p class="text-sm font-black text-emerald-400" id="plCashSales">৳০</p>
+        </div>
+        <div class="bg-slate-950/60 border border-pink-500/20 rounded-lg p-2">
+          <p class="text-[9px] text-slate-500 font-bold">বিকাশ/নগদ</p>
+          <p class="text-sm font-black text-pink-400" id="plMfsSales">৳০</p>
+        </div>
+        <div class="bg-slate-950/60 border border-amber-500/20 rounded-lg p-2">
+          <p class="text-[9px] text-slate-500 font-bold">বাকি বিক্রি</p>
+          <p class="text-sm font-black text-amber-400" id="plDueSales">৳০</p>
+        </div>
+        <div class="bg-slate-950/60 border border-cyan-500/20 rounded-lg p-2">
+          <p class="text-[9px] text-slate-500 font-bold">পুরনো বাকি আদায়</p>
+          <p class="text-sm font-black text-cyan-400" id="plCollected">৳০</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== দৈনিক বিক্রি চার্ট ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="bar-chart-2" class="w-4 h-4 text-cyan-400"></i> দৈনিক বিক্রি
+        </h2>
+        <select id="chartPeriod" onchange="renderDailyChart()" class="text-[10px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-white outline-none">
+          <option value="7">৭ দিন</option>
+          <option value="14">১৪ দিন</option>
+          <option value="30" selected>৩০ দিন</option>
+        </select>
+      </div>
+      <div class="w-full h-56"><canvas id="chartDaily"></canvas></div>
+      <div class="grid grid-cols-3 gap-1.5 mt-2">
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">সর্বোচ্চ দিন</p>
+          <p class="text-[10px] font-black text-emerald-400" id="bestDay">--</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">সর্বনিম্ন দিন</p>
+          <p class="text-[10px] font-black text-rose-400" id="worstDay">--</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">গড় বিক্রি</p>
+          <p class="text-[10px] font-black text-cyan-400" id="avgDay">--</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== সাপ্তাহিক প্যাটার্ন ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="calendar-days" class="w-4 h-4 text-indigo-400"></i> সপ্তাহের কোন দিনে বেশি বিক্রি?
+        </h2>
+        <span class="text-[9px] text-slate-500" id="weeklyPeriodLabel">৩০ দিন</span>
+      </div>
+      <div id="weeklyPattern" class="space-y-1.5"></div>
+    </section>
+
+    <!-- ============== মাসিক পারফরম্যান্স ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="calendar" class="w-4 h-4 text-purple-400"></i> মাসিক পারফরম্যান্স
+        </h2>
+      </div>
+      <div class="w-full h-56"><canvas id="chartMonthly"></canvas></div>
+      <div class="grid grid-cols-3 gap-1.5 mt-2">
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">এই মাস</p>
+          <p class="text-[11px] font-black text-cyan-400" id="thisMonthTotal">৳০</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">গত মাস</p>
+          <p class="text-[11px] font-black text-slate-300" id="lastMonthTotal">৳০</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">গ্রোথ</p>
+          <p class="text-[11px] font-black" id="monthGrowth">--</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== টপ প্রোডাক্ট / লাভজনক ============== -->
+    <div class="grid grid-cols-2 gap-2">
+      <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-[11px] font-black text-slate-200 flex items-center gap-1">
+            <i data-lucide="flame" class="w-3.5 h-3.5 text-orange-400"></i> টপ বিক্রি
+          </h2>
+        </div>
+        <div id="topSelling" class="space-y-1.5"></div>
+      </section>
+
+      <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-[11px] font-black text-slate-200 flex items-center gap-1">
+            <i data-lucide="gem" class="w-3.5 h-3.5 text-emerald-400"></i> টপ লাভ
+          </h2>
+        </div>
+        <div id="topProfit" class="space-y-1.5"></div>
+      </section>
+    </div>
+
+    <!-- ============== টপ কাস্টমার ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="star" class="w-4 h-4 text-amber-400"></i> টপ কাস্টমার
+        </h2>
+        <a href="history.html" class="text-[9px] text-cyan-400 font-bold">সব দেখুন →</a>
+      </div>
+      <div id="topCustomers" class="space-y-1.5"></div>
+    </section>
+
+    <!-- ============== স্টক অ্যালার্ট ============== -->
+    <section class="bg-gradient-to-br from-rose-950/40 to-slate-900 border border-rose-500/40 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-rose-300 flex items-center gap-1.5">
+          <i data-lucide="alert-triangle" class="w-4 h-4 animate-pulse"></i> স্টক অ্যালার্ট
+        </h2>
+        <a href="products.html" class="text-[9px] bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 px-2 py-1 rounded-lg border border-rose-500/30 font-bold">সব দেখুন →</a>
+      </div>
+      <div id="stockAlerts" class="space-y-1.5 max-h-64 overflow-y-auto no-scrollbar"></div>
+    </section>
+
+    <!-- ============== আর্থিক সারাংশ ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <h2 class="text-xs font-black text-slate-200 mb-2 flex items-center gap-1.5">
+        <i data-lucide="banknote" class="w-4 h-4 text-cyan-400"></i> আর্থিক সারাংশ
+      </h2>
+      <div class="grid grid-cols-2 gap-1.5">
+        <a href="expenses.html#receivables" class="bg-amber-950/40 border border-amber-500/30 rounded-xl p-2.5 active:scale-99">
+          <p class="text-[9px] text-amber-300 font-bold">কাস্টমার পাওনা</p>
+          <p class="text-sm font-black text-white" id="finReceivable">৳০</p>
+          <p class="text-[9px] text-amber-400 mt-0.5" id="finReceivableOverdue">মেয়াদ পার: ৳০</p>
+        </a>
+        <a href="expenses.html#payables" class="bg-purple-950/40 border border-purple-500/30 rounded-xl p-2.5 active:scale-99">
+          <p class="text-[9px] text-purple-300 font-bold">সাপ্লায়ার দেনা</p>
+          <p class="text-sm font-black text-white" id="finPayable">৳০</p>
+          <p class="text-[9px] text-purple-400 mt-0.5" id="finPayableOverdue">মেয়াদ পার: ৳০</p>
+        </a>
+        <a href="expenses.html" class="bg-rose-950/40 border border-rose-500/30 rounded-xl p-2.5 active:scale-99">
+          <p class="text-[9px] text-rose-300 font-bold">আজকের খরচ</p>
+          <p class="text-sm font-black text-white" id="finTodayExpense">৳০</p>
+          <p class="text-[9px] text-rose-400 mt-0.5">ব্যবসার</p>
+        </a>
+        <a href="expenses.html" class="bg-slate-950/60 border border-slate-800 rounded-xl p-2.5 active:scale-99">
+          <p class="text-[9px] text-slate-400 font-bold">স্টক ভ্যালু</p>
+          <p class="text-sm font-black text-white" id="finStockValue">৳০</p>
+          <p class="text-[9px] text-emerald-400 mt-0.5" id="finStockItems">০ পিস</p>
+        </a>
+      </div>
+
+      <!-- ক্যাশ অ্যাকাউন্টস -->
+      <p class="text-[10px] font-black text-slate-400 uppercase mt-2 mb-1.5">অ্যাকাউন্ট ব্যালেন্স</p>
+      <div id="accountsList" class="space-y-1"></div>
+    </section>
+
+    <!-- ============== স্মার্ট ইনসাইট ============== -->
+    <section class="bg-gradient-to-br from-indigo-950/60 via-cyan-950/40 to-slate-900 border border-cyan-500/40 rounded-2xl p-3">
+      <h2 class="text-xs font-black text-white mb-2 flex items-center gap-1.5">
+        <i data-lucide="lightbulb" class="w-4 h-4 text-amber-400"></i> স্মার্ট ইনসাইট
+      </h2>
+      <div id="insights" class="space-y-1.5"></div>
+    </section>
+
+    <!-- ============== সাম্প্রতিক লেনদেন ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+          <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i> সাম্প্রতিক লেনদেন
+        </h2>
+        <a href="history.html" class="text-[9px] text-cyan-400 font-bold">সব দেখুন →</a>
+      </div>
+      <div id="recentTransactions" class="space-y-1.5 max-h-80 overflow-y-auto no-scrollbar"></div>
+    </section>
+
+    <!-- ============== সব পেজ লিংক ============== -->
+    <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+      <h2 class="text-xs font-black text-slate-200 mb-2 flex items-center gap-1.5">
+        <i data-lucide="layout-grid" class="w-4 h-4 text-slate-400"></i> সব মডিউল
+      </h2>
+      <div class="grid grid-cols-4 gap-1.5">
+        <a href="pos.html" class="bg-slate-800 hover:bg-slate-700 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="shopping-cart" class="w-4 h-4 text-cyan-400"></i>
+          <span class="text-[8px] font-bold text-slate-300 text-center">POS</span>
+        </a>
+        <a href="inventory.html" class="bg-slate-800 hover:bg-slate-700 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="package-plus" class="w-4 h-4 text-indigo-400"></i>
+          <span class="text-[8px] font-bold text-slate-300 text-center">ইনভেন্টরি</span>
+        </a>
+        <a href="products.html" class="bg-slate-800 hover:bg-slate-700 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="boxes" class="w-4 h-4 text-emerald-400"></i>
+          <span class="text-[8px] font-bold text-slate-300 text-center">পণ্য</span>
+        </a>
+        <a href="expenses.html" class="bg-slate-800 hover:bg-slate-700 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="receipt" class="w-4 h-4 text-rose-400"></i>
+          <span class="text-[8px] font-bold text-slate-300 text-center">খরচ</span>
+        </a>
+        <a href="history.html" class="bg-slate-800 hover:bg-slate-700 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="history" class="w-4 h-4 text-amber-400"></i>
+          <span class="text-[8px] font-bold text-slate-300 text-center">হিস্ট্রি</span>
+        </a>
+        <a href="reports.html" class="bg-slate-800 hover:bg-slate-700 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="bar-chart-3" class="w-4 h-4 text-purple-400"></i>
+          <span class="text-[8px] font-bold text-slate-300 text-center">রিপোর্ট</span>
+        </a>
+        <a href="expenses.html#cashbook" class="bg-slate-800 hover:bg-slate-700 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="wallet" class="w-4 h-4 text-cyan-400"></i>
+          <span class="text-[8px] font-bold text-slate-300 text-center">ক্যাশবুক</span>
+        </a>
+        <a href="expenses.html#settings" class="bg-slate-800 hover:bg-slate-700 rounded-xl p-2 flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
+          <span class="text-[8px] font-bold text-slate-300 text-center">সেটিংস</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ফুটার -->
+    <div class="text-center py-3">
+      <p class="text-[10px] text-slate-500">Talha Tech © 2026 • সর্বস্বত্ব সংরক্ষিত</p>
+      <p class="text-[9px] text-slate-600 mt-0.5">Developed with ❤️ for Bangladeshi Business</p>
+    </div>
+
+  </main>
+
+  <!-- ================= ইউনিভার্সাল বটম নেভিগেশন বার ================= -->
+  <nav class="fixed bottom-0 left-0 right-0 glass border-t border-slate-800 z-50">
+    <div class="max-w-3xl mx-auto grid grid-cols-7 text-center py-2 px-1">
+      <!-- এই পেজটি একটিভ -->
+      <a href="index.html" class="flex flex-col items-center gap-0.5 text-cyan-400 transition active:scale-95">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">হোম</span>
+      </a>
+      <a href="pos.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">বিক্রি</span>
+      </a>
+      <a href="inventory.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="package-plus" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">মাল এন্ট্রি</span>
+      </a>
+      <a href="products.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="boxes" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">পণ্য</span>
+      </a>
+      <a href="expenses.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="receipt" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">খরচ/হিসাব</span>
+      </a>
+      <a href="history.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="history" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">হিস্ট্রি</span>
+      </a>
+      <a href="reports.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">রিপোর্ট</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ============== কাস্টম রেঞ্জ মডাল ============== -->
+  <div id="customRangeModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 flex items-center justify-center">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-4 shadow-2xl space-y-3 animate-slide-up">
+      <div class="flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="calendar" class="w-4 h-4 text-cyan-400"></i> কাস্টম তারিখ
+        </h3>
+        <button onclick="closeModal('customRangeModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div>
+        <label class="text-[10px] font-bold text-slate-400 mb-1 block">শুরুর তারিখ</label>
+        <input type="date" id="customFrom" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-cyan-400">
+      </div>
+      <div>
+        <label class="text-[10px] font-bold text-slate-400 mb-1 block">শেষ তারিখ</label>
+        <input type="date" id="customTo" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-cyan-400">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="closeModal('customRangeModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition">বাতিল</button>
+        <button onclick="applyCustomRange()" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black py-2.5 rounded-xl text-xs active:scale-95 transition">প্রয়োগ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== সেটিংস মডাল ============== -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i> দ্রুত সেটিংস
+        </h3>
+        <button onclick="closeModal('settingsModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-2">
+        <a href="expenses.html#settings" class="flex items-center gap-3 bg-slate-950 border border-slate-800 hover:bg-slate-900 rounded-xl p-3 active:scale-99 transition">
+          <div class="w-9 h-9 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+            <i data-lucide="download" class="w-4 h-4"></i>
+          </div>
+          <div class="flex-1">
+            <p class="text-xs font-bold text-white">ডেটা ব্যাকআপ</p>
+            <p class="text-[10px] text-slate-500">সব ডেটার JSON ব্যাকআপ</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+        </a>
+        <a href="expenses.html#settings" class="flex items-center gap-3 bg-slate-950 border border-slate-800 hover:bg-slate-900 rounded-xl p-3 active:scale-99 transition">
+          <div class="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="upload" class="w-4 h-4"></i>
+          </div>
+          <div class="flex-1">
+            <p class="text-xs font-bold text-white">ডেটা রিস্টোর</p>
+            <p class="text-[10px] text-slate-500">ব্যাকআপ থেকে ফিরিয়ে আনুন</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+        </a>
+        <a href="expenses.html" class="flex items-center gap-3 bg-slate-950 border border-slate-800 hover:bg-slate-900 rounded-xl p-3 active:scale-99 transition">
+          <div class="w-9 h-9 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center">
+            <i data-lucide="languages" class="w-4 h-4"></i>
+          </div>
+          <div class="flex-1">
+            <p class="text-xs font-bold text-white">ভাষা ও ফরম্যাট</p>
+            <p class="text-[10px] text-slate-500">সংখ্যা ও তারিখ ফরম্যাট</p>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+        </a>
+        <div class="pt-2 border-t border-slate-800 text-[10px] text-slate-500 text-center">
+          <p>Talha Tech • সংস্করণ ১.০</p>
+          <p class="mt-1">LocalStorage + Google Sheets</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== টোস্ট ============== -->
+  <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 opacity-0 pointer-events-none">
+    <i data-lucide="check-circle-2" class="w-4 h-4" id="toastIcon"></i>
+    <span id="toastMsg">সফল!</span>
+  </div>
+
+  <script>
+    // ============================================================
+    // কনফিগ
+    // ============================================================
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFBvVpj-289-OFzsmBl5wJNkXIJxFGF-4n4tutKwQmUhA-tg9ktXwwzSAsfPVL7FzUyw/exec";
+    const KEYS = {
+      sales:'tt_master_sales', products:'tt_master_products', expenses:'tt_master_expenses',
+      damages:'tt_master_damages', dues:'tt_master_dues', payables:'tt_supplier_payables',
+      accounts:'tt_cash_accounts', cashTx:'tt_cash_transactions', capital:'tt_capital_transactions'
+    };
+
+    let db = { sales:[], products:[], expenses:[], damages:[], dues:[], payables:[], accounts:[], cashTx:[], capital:[] };
+    let state = { filter:'all', from:null, to:null };
+    let charts = {};
+
+    // ============================================================
+    // ইউটিলিটি
+    // ============================================================
+    const fmt = n => '৳' + Math.round(Number(n)||0).toLocaleString('en-IN');
+    const fmtPct = n => (Number(n)||0).toFixed(1) + '%';
+    const todayStr = () => new Date().toISOString().split('T')[0];
+    const escapeHtml = s => String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+    function toast(msg, type='success') {
+      const t = document.getElementById('toast'), m = document.getElementById('toastMsg'), i = document.getElementById('toastIcon');
+      m.innerText = msg;
+      if (type==='success') { t.className='fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950'; i.setAttribute('data-lucide','check-circle-2'); }
+      else if (type==='error') { t.className='fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-rose-500 to-red-600 text-white'; i.setAttribute('data-lucide','alert-circle'); }
+      else { t.className='fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950'; i.setAttribute('data-lucide','info'); }
+      lucide.createIcons();
+      t.classList.remove('opacity-0','pointer-events-none');
+      clearTimeout(window._tt); window._tt = setTimeout(()=>t.classList.add('opacity-0','pointer-events-none'), 2500);
+    }
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.body.style.overflow='hidden'; lucide.createIcons(); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.body.style.overflow=''; }
+    function goTo(url) { window.location.href = url; }
+
+    // ============================================================
+    // ডাটা
+    // ============================================================
+    function loadDB() {
+      try {
+        db.sales = JSON.parse(localStorage.getItem(KEYS.sales) || '[]');
+        db.products = JSON.parse(localStorage.getItem(KEYS.products) || '[]');
+        db.expenses = JSON.parse(localStorage.getItem(KEYS.expenses) || '[]');
+        db.damages = JSON.parse(localStorage.getItem(KEYS.damages) || '[]');
+        db.dues = JSON.parse(localStorage.getItem(KEYS.dues) || '[]');
+        db.payables = JSON.parse(localStorage.getItem(KEYS.payables) || '[]');
+        db.accounts = JSON.parse(localStorage.getItem(KEYS.accounts) || '[]');
+        db.cashTx = JSON.parse(localStorage.getItem(KEYS.cashTx) || '[]');
+        db.capital = JSON.parse(localStorage.getItem(KEYS.capital) || '[]');
+      } catch (e) { console.warn('লোড এরর:', e); }
+    }
+
+    // ============================================================
+    // ডেট ফিল্টার
+    // ============================================================
+    function setDateFilter(filter) {
+      state.filter = filter;
+      state.from = null;
+      state.to = null;
+
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        if (btn.dataset.filter === filter) btn.className = 'filter-btn bg-cyan-600 text-slate-950 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0';
+        else btn.className = 'filter-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0';
+      });
+
+      const labels = { today:'আজকের ডেটা', yesterday:'গতকালের ডেটা', week:'গত ৭ দিনের ডেটা', month:'গত ৩০ দিনের ডেটা', thisMonth:'এই মাসের ডেটা', lastMonth:'গত মাসের ডেটা', year:'এই বছরের ডেটা', all:'সব সময়ের ডেটা' };
+      document.getElementById('filterLabel').innerText = labels[filter] || 'কাস্টম';
+
+      renderAll();
+    }
+
+    function openCustomRange() {
+      document.getElementById('customFrom').value = '';
+      document.getElementById('customTo').value = '';
+      openModal('customRangeModal');
+    }
+
+    function applyCustomRange() {
+      const from = document.getElementById('customFrom').value;
+      const to = document.getElementById('customTo').value;
+      if (!from || !to) return toast('দুটি তারিখ দিন','error');
+      if (from > to) return toast('শুরুর তারিখ পরে হতে হবে','error');
+
+      state.filter = 'custom';
+      state.from = from;
+      state.to = to;
+
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.className = 'filter-btn bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0';
+      });
+
+      document.getElementById('filterLabel').innerText = `কাস্টম: ${from} → ${to}`;
+      closeModal('customRangeModal');
+      renderAll();
+    }
+
+    function getDateRange() {
+      const today = new Date();
+      const tStr = today.toISOString().split('T')[0];
+
+      if (state.filter === 'custom' && state.from && state.to) {
+        return { from: state.from, to: state.to };
+      }
+
+      switch (state.filter) {
+        case 'today': return { from: tStr, to: tStr };
+        case 'yesterday': {
+          const d = new Date(); d.setDate(d.getDate()-1);
+          return { from: d.toISOString().split('T')[0], to: d.toISOString().split('T')[0] };
+        }
+        case 'week': {
+          const d = new Date(); d.setDate(d.getDate()-7);
+          return { from: d.toISOString().split('T')[0], to: tStr };
+        }
+        case 'month': {
+          const d = new Date(); d.setDate(d.getDate()-30);
+          return { from: d.toISOString().split('T')[0], to: tStr };
+        }
+        case 'thisMonth': return { from: today.toISOString().slice(0,7)+'-01', to: tStr };
+        case 'lastMonth': {
+          const d = new Date(today.getFullYear(), today.getMonth(), 0);
+          return { from: d.toISOString().slice(0,7)+'-01', to: d.toISOString().split('T')[0] };
+        }
+        case 'year': return { from: today.getFullYear()+'-01-01', to: tStr };
+        case 'all':
+        default: return { from: '2000-01-01', to: '2100-12-31' };
+      }
+    }
+
+    // ============================================================
+    // মূল রেন্ডার
+    // ============================================================
+    function renderAll() {
+      const range = getDateRange();
+      const todayStrValue = todayStr();
+      document.getElementById('summaryTitle').innerText = state.filter === 'today' ? 'আজকের সারাংশ' : state.filter === 'yesterday' ? 'গতকালের সারাংশ' : 'সারাংশ';
+      document.getElementById('summaryDate').innerText = range.from === range.to ? range.from : `${range.from} → ${range.to}`;
+
+      const filteredSales = db.sales.filter(s => !s.isCancelled && s.date >= range.from && s.date <= range.to);
+      const validSales = filteredSales.filter(s => !s.isReturned);
+      const filteredExpenses = db.expenses.filter(e => !e.isCancelled && e.date >= range.from && e.date <= range.to);
+      const filteredDamages = db.damages.filter(d => !d.isCancelled && d.date >= range.from && d.date <= range.to);
+
+      // KPIs
+      const revenue = validSales.reduce((s,x)=>s+(x.totalAmount||0),0);
+      const grossProfit = validSales.reduce((s,x)=>s+(x.profit||0),0);
+      const opExp = filteredExpenses.filter(e => e.type !== 'personal' && e.category !== 'মাল নষ্ট/ড্যামেজ').reduce((s,e)=>s+(e.amount||0),0);
+      const dmgLoss = filteredDamages.reduce((s,d)=>s+(d.lossAmount||0),0);
+      const totalExpense = opExp + dmgLoss;
+      const netProfit = grossProfit - totalExpense;
+      const margin = revenue > 0 ? (netProfit / revenue * 100) : 0;
+
+      // পেমেন্ট ব্রেকডাউন
+      const cashSales = validSales.filter(s=>s.paymentMethod==='Cash').reduce((s,x)=>s+(x.totalAmount||0),0);
+      const mfsSales = validSales.filter(s=>s.paymentMethod==='MFS').reduce((s,x)=>s+(x.totalAmount||0),0);
+      const dueSales = validSales.filter(s=>s.paymentMethod==='Due').reduce((s,x)=>s+(x.totalAmount||0),0);
+
+      // কালেকশন
+      let collected = 0;
+      db.dues.forEach(d => { if (d.payments) d.payments.forEach(p => { if (p.date >= range.from && p.date <= range.to) collected += (p.amount||0); }); });
+
+      // কার্ড আপডেট
+      document.getElementById('kpiSales').innerText = fmt(revenue);
+      document.getElementById('kpiSalesSub').innerText = `${validSales.length} টি লেনদেন`;
+      document.getElementById('kpiProfit').innerText = fmt(netProfit);
+      document.getElementById('kpiProfitSub').innerText = `মার্জিন: ${fmtPct(margin)}`;
+      document.getElementById('kpiExpense').innerText = fmt(totalExpense);
+      document.getElementById('kpiExpenseSub').innerText = `ব্যবসা: ${fmt(opExp)} • ড্যামেজ: ${fmt(dmgLoss)}`;
+
+      // মোট ক্যাশ
+      let totalCash = 0;
+      db.accounts.forEach(a => totalCash += getAccountBalance(a.id));
+      document.getElementById('kpiCash').innerText = fmt(totalCash);
+
+      // সেকেন্ডারি
+      const uniqueCustomers = new Set(validSales.map(s => (s.customerName||'').toLowerCase())).size;
+      const totalItems = validSales.reduce((s,x)=>s+x.items.reduce((ss,it)=>ss+(it.qty||0),0), 0);
+      const avgTicket = validSales.length > 0 ? revenue / validSales.length : 0;
+
+      document.getElementById('kpiInvoices').innerText = validSales.length;
+      document.getElementById('kpiItems').innerText = totalItems;
+      document.getElementById('kpiCustomers').innerText = uniqueCustomers;
+      document.getElementById('kpiAvg').innerText = fmt(avgTicket);
+
+      // গ্রোথ (গতকালের সাথে বা গত পিরিয়ডের সাথে)
+      const growthRange = getPreviousRange(range);
+      if (growthRange) {
+        const prevSales = db.sales.filter(s => !s.isCancelled && !s.isReturned && s.date >= growthRange.from && s.date <= growthRange.to);
+        const prevRevenue = prevSales.reduce((s,x)=>s+(x.totalAmount||0),0);
+        const prevGross = prevSales.reduce((s,x)=>s+(x.profit||0),0);
+        const prevExp = db.expenses.filter(e => !e.isCancelled && e.date >= growthRange.from && e.date <= growthRange.to && e.type !== 'personal' && e.category !== 'মাল নষ্ট/ড্যামেজ').reduce((s,e)=>s+(e.amount||0),0);
+        const prevDmg = db.damages.filter(d => !d.isCancelled && d.date >= growthRange.from && d.date <= growthRange.to).reduce((s,d)=>s+(d.lossAmount||0),0);
+        const prevProfit = prevGross - prevExp - prevDmg;
+
+        setGrowth('kpiSalesGrowth', prevRevenue > 0 ? ((revenue - prevRevenue) / prevRevenue * 100) : null);
+        setGrowth('kpiProfitGrowth', prevProfit > 0 ? ((netProfit - prevProfit) / prevProfit * 100) : null);
+      } else {
+        setGrowth('kpiSalesGrowth', null);
+        setGrowth('kpiProfitGrowth', null);
+      }
+
+      // P&L
+      document.getElementById('plSales').innerText = fmt(revenue);
+      document.getElementById('plCOGS').innerText = fmt(revenue - grossProfit);
+      document.getElementById('plGrossProfit').innerText = fmt(grossProfit);
+      document.getElementById('plExpenses').innerText = fmt(opExp);
+      document.getElementById('plDamage').innerText = fmt(dmgLoss);
+      document.getElementById('plNet').innerText = fmt(netProfit);
+      document.getElementById('plMargin').innerText = fmtPct(margin);
+
+      const plBox = document.getElementById('plNetBox');
+      const plLabel = document.getElementById('plNetLabel');
+      if (netProfit >= 0) {
+        plBox.className = 'mt-2 p-2.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30';
+        plLabel.className = 'font-black text-sm text-emerald-400';
+        document.getElementById('plNet').className = 'font-black text-lg text-emerald-400';
+      } else {
+        plBox.className = 'mt-2 p-2.5 rounded-lg bg-rose-500/15 border border-rose-500/30';
+        plLabel.className = 'font-black text-sm text-rose-400';
+        document.getElementById('plNet').className = 'font-black text-lg text-rose-400';
+      }
+
+      document.getElementById('plCashSales').innerText = fmt(cashSales);
+      document.getElementById('plMfsSales').innerText = fmt(mfsSales);
+      document.getElementById('plDueSales').innerText = fmt(dueSales);
+      document.getElementById('plCollected').innerText = fmt(collected);
+
+      // চার্ট
+      renderDailyChart();
+      renderWeeklyPattern(range);
+      renderMonthlyChart();
+
+      // টপ প্রোডাক্ট
+      renderTopProducts(filteredSales.filter(s=>!s.isReturned));
+      renderTopCustomers(filteredSales.filter(s=>!s.isReturned));
+
+      // স্টক অ্যালার্ট
+      renderStockAlerts();
+
+      // আর্থিক সারাংশ
+      renderFinancialSummary(range);
+
+      // ইনসাইট
+      renderInsights(range, revenue, grossProfit, netProfit, opExp, margin);
+
+      // সাম্প্রতিক লেনদেন
+      renderRecentTransactions();
+    }
+
+    function getPreviousRange(range) {
+      if (state.filter === 'all') return null;
+      const from = new Date(range.from);
+      const to = new Date(range.to);
+      const days = Math.ceil((to - from) / (1000*60*60*24)) + 1;
+      const prevTo = new Date(from); prevTo.setDate(prevTo.getDate()-1);
+      const prevFrom = new Date(prevTo); prevFrom.setDate(prevFrom.getDate()-days+1);
+      return { from: prevFrom.toISOString().split('T')[0], to: prevTo.toISOString().split('T')[0] };
+    }
+
+    function setGrowth(id, val) {
+      const el = document.getElementById(id);
+      if (val === null) {
+        el.innerText = '';
+        el.className = 'text-[9px] font-bold mt-1';
+      } else {
+        const sign = val > 0 ? '▲' : val < 0 ? '▼' : '◆';
+        el.innerText = `${sign} ${Math.abs(val).toFixed(1)}%`;
+        el.className = 'text-[9px] font-bold mt-1 ' + (val > 0 ? 'text-emerald-400' : val < 0 ? 'text-rose-400' : 'text-slate-500');
+      }
+    }
+
+    // ============================================================
+    // দৈনিক চার্ট
+    // ============================================================
+    function renderDailyChart() {
+      const days = parseInt(document.getElementById('chartPeriod').value) || 30;
+      const labels = [], salesData = [], profitData = [];
+
+      for (let i = days-1; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate()-i);
+        const ds = d.toISOString().split('T')[0];
+        const daySales = db.sales.filter(s => !s.isCancelled && !s.isReturned && s.date === ds);
+        const dayRevenue = daySales.reduce((s,x)=>s+(x.totalAmount||0),0);
+        const dayProfit = daySales.reduce((s,x)=>s+(x.profit||0),0) - db.expenses.filter(e => !e.isCancelled && e.date === ds && e.type !== 'personal').reduce((s,e)=>s+(e.amount||0),0) - db.damages.filter(d => !d.isCancelled && d.date === ds).reduce((s,d)=>s+(d.lossAmount||0),0);
+
+        labels.push(ds.slice(5));
+        salesData.push(dayRevenue);
+        profitData.push(dayProfit);
+      }
+
+      if (charts.daily) charts.daily.destroy();
+      const ctx = document.getElementById('chartDaily').getContext('2d');
+      charts.daily = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'বিক্রি', data: salesData, backgroundColor: '#06b6d4', borderRadius: 4 },
+            { label: 'নিট লাভ', data: profitData, backgroundColor: '#10b981', borderRadius: 4 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#94a3b8', font: { family: 'Hind Siliguri', size: 10 }, boxWidth: 10 } },
+            tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y)}` } }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8', font: { size: 8 }, maxRotation: 0 }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', font: { size: 8 }, callback: v => '৳'+(v/1000>=1?(v/1000)+'k':v) }, grid: { color: '#1e293b' } }
+          }
+        }
+      });
+
+      // বেস্ট/ওয়ার্স্ট
+      const nonZero = salesData.map((v, i) => ({ v, label: labels[i] })).filter(x => x.v > 0);
+      if (nonZero.length > 0) {
+        const best = nonZero.reduce((a, b) => a.v > b.v ? a : b);
+        const worst = nonZero.reduce((a, b) => a.v < b.v ? a : b);
+        const avg = nonZero.reduce((s, x) => s + x.v, 0) / nonZero.length;
+        document.getElementById('bestDay').innerText = `${best.label} (${fmt(best.v)})`;
+        document.getElementById('worstDay').innerText = `${worst.label} (${fmt(worst.v)})`;
+        document.getElementById('avgDay').innerText = fmt(avg);
+      } else {
+        document.getElementById('bestDay').innerText = '--';
+        document.getElementById('worstDay').innerText = '--';
+        document.getElementById('avgDay').innerText = '--';
+      }
+    }
+
+    // ============================================================
+    // সাপ্তাহিক প্যাটার্ন
+    // ============================================================
+    function renderWeeklyPattern(range) {
+      const dayNames = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'];
+      const dayMap = { 0:{name:'রবিবার',rev:0,prof:0,count:0,days:new Set()}, 1:{name:'সোমবার',rev:0,prof:0,count:0,days:new Set()}, 2:{name:'মঙ্গলবার',rev:0,prof:0,count:0,days:new Set()}, 3:{name:'বুধবার',rev:0,prof:0,count:0,days:new Set()}, 4:{name:'বৃহস্পতিবার',rev:0,prof:0,count:0,days:new Set()}, 5:{name:'শুক্রবার',rev:0,prof:0,count:0,days:new Set()}, 6:{name:'শনিবার',rev:0,prof:0,count:0,days:new Set()} };
+
+      db.sales.filter(s => !s.isCancelled && !s.isReturned && s.date >= range.from && s.date <= range.to).forEach(s => {
+        const d = new Date(s.date);
+        const dow = d.getDay();
+        dayMap[dow].rev += (s.totalAmount||0);
+        dayMap[dow].prof += (s.profit||0);
+        dayMap[dow].count++;
+        dayMap[dow].days.add(s.date);
+      });
+
+      const sorted = Object.values(dayMap).filter(d => d.count > 0).sort((a,b)=>b.rev-a.rev);
+      const maxRev = sorted.length > 0 ? sorted[0].rev : 1;
+
+      const cont = document.getElementById('weeklyPattern');
+      if (sorted.length === 0) {
+        cont.innerHTML = '<p class="text-center text-slate-500 text-xs py-3">ডেটা নেই</p>';
+        return;
+      }
+
+      cont.innerHTML = sorted.map((d, i) => {
+        const pct = (d.rev / maxRev) * 100;
+        const isTop = i === 0;
+        return `
+          <div class="bg-slate-950 border ${isTop ? 'border-emerald-500/40' : 'border-slate-800'} rounded-lg p-2">
+            <div class="flex justify-between items-center mb-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-black text-white">${d.name}</span>
+                ${isTop ? '<i data-lucide="crown" class="w-3 h-3 text-amber-400"></i>' : ''}
+              </div>
+              <span class="text-[10px] font-black text-cyan-400">${fmt(d.rev)}</span>
+            </div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1">
+              <div class="h-full rounded-full ${isTop ? 'bg-emerald-500' : 'bg-cyan-500'}" style="width: ${pct}%"></div>
+            </div>
+            <div class="flex justify-between text-[9px] text-slate-500">
+              <span>লাভ: ${fmt(d.prof)}</span>
+              <span>${d.count} টি লেনদেন</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // ============================================================
+    // মাসিক চার্ট
+    // ============================================================
+    function renderMonthlyChart() {
+      const monthlyMap = {};
+      db.sales.filter(s => !s.isCancelled && !s.isReturned).forEach(s => {
+        const m = s.date.slice(0,7);
+        if (!monthlyMap[m]) monthlyMap[m] = { rev:0, prof:0 };
+        monthlyMap[m].rev += (s.totalAmount||0);
+        monthlyMap[m].prof += (s.profit||0);
+      });
+
+      const months = Object.keys(monthlyMap).sort().slice(-12);
+      const labels = months.map(m => {
+        const [y, mo] = m.split('-');
+        const mn = ['জানু','ফেব','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগ','সেপ্ট','অক্টো','নভে','ডিসে'][parseInt(mo)-1];
+        return mn;
+      });
+
+      if (charts.monthly) charts.monthly.destroy();
+      const ctx = document.getElementById('chartMonthly').getContext('2d');
+      charts.monthly = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels.length ? labels : ['--'],
+          datasets: [
+            { label: 'বিক্রি', data: months.length ? months.map(m => monthlyMap[m].rev) : [0], borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.15)', tension: 0.4, fill: true, pointRadius: 4 },
+            { label: 'গ্রস প্রফিট', data: months.length ? months.map(m => monthlyMap[m].prof) : [0], borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.15)', tension: 0.4, fill: true, pointRadius: 4 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#94a3b8', font: { family: 'Hind Siliguri', size: 10 }, boxWidth: 10 } },
+            tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y)}` } }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', font: { size: 9 }, callback: v => '৳'+(v/1000>=1?(v/1000)+'k':v) }, grid: { color: '#1e293b' } }
+          }
+        }
+      });
+
+      // এই মাস vs গত মাস
+      const now = new Date();
+      const thisMonthKey = now.toISOString().slice(0,7);
+      const lastMonthDate = new Date(now.getFullYear(), now.getMonth(), 0);
+      const lastMonthKey = lastMonthDate.toISOString().slice(0,7);
+
+      const thisMonthTotal = monthlyMap[thisMonthKey]?.rev || 0;
+      const lastMonthTotal = monthlyMap[lastMonthKey]?.rev || 0;
+      const growth = lastMonthTotal > 0 ? ((thisMonthTotal - lastMonthTotal) / lastMonthTotal * 100) : null;
+
+      document.getElementById('thisMonthTotal').innerText = fmt(thisMonthTotal);
+      document.getElementById('lastMonthTotal').innerText = fmt(lastMonthTotal);
+      const growthEl = document.getElementById('monthGrowth');
+      if (growth === null) {
+        growthEl.innerText = '--';
+        growthEl.className = 'text-[11px] font-black text-slate-500';
+      } else {
+        growthEl.innerText = `${growth > 0 ? '▲' : growth < 0 ? '▼' : '◆'} ${Math.abs(growth).toFixed(1)}%`;
+        growthEl.className = 'text-[11px] font-black ' + (growth > 0 ? 'text-emerald-400' : growth < 0 ? 'text-rose-400' : 'text-slate-400');
+      }
+    }
+
+    // ============================================================
+    // টপ প্রোডাক্ট
+    // ============================================================
+    function renderTopProducts(sales) {
+      const prodMap = {}, profitMap = {};
+      sales.forEach(s => s.items.forEach(it => {
+        const key = it.name;
+        if (!prodMap[key]) prodMap[key] = { name:key, qty:0, amount:0 };
+        prodMap[key].qty += (it.qty||0);
+        prodMap[key].amount += (it.unitPrice||0) * (it.qty||0);
+
+        if (!profitMap[key]) profitMap[key] = { name:key, profit:0 };
+        profitMap[key].profit += ((it.unitPrice||0) - (it.buyPrice||0)) * (it.qty||0);
+      }));
+
+      const topSelling = Object.values(prodMap).sort((a,b)=>b.amount-a.amount).slice(0,5);
+      const topProfit = Object.values(profitMap).sort((a,b)=>b.profit-a.profit).slice(0,5);
+
+      document.getElementById('topSelling').innerHTML = topSelling.length
+        ? topSelling.map((p, i) => `
+          <div class="flex items-center gap-1.5">
+            <span class="w-4 h-4 rounded bg-orange-500/20 text-orange-400 text-[8px] font-black flex items-center justify-center flex-shrink-0">${i+1}</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-[10px] font-bold text-white truncate">${escapeHtml(p.name)}</p>
+              <p class="text-[8px] text-slate-500">${p.qty} পিস</p>
+            </div>
+            <span class="text-[9px] font-black text-cyan-400">${fmt(p.amount)}</span>
+          </div>
+        `).join('')
+        : '<p class="text-center text-slate-500 text-[10px] py-2">ডেটা নেই</p>';
+
+      document.getElementById('topProfit').innerHTML = topProfit.length
+        ? topProfit.map((p, i) => `
+          <div class="flex items-center gap-1.5">
+            <span class="w-4 h-4 rounded bg-emerald-500/20 text-emerald-400 text-[8px] font-black flex items-center justify-center flex-shrink-0">${i+1}</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-[10px] font-bold text-white truncate">${escapeHtml(p.name)}</p>
+            </div>
+            <span class="text-[9px] font-black text-emerald-400">${fmt(p.profit)}</span>
+          </div>
+        `).join('')
+        : '<p class="text-center text-slate-500 text-[10px] py-2">ডেটা নেই</p>';
+    }
+
+    // ============================================================
+    // টপ কাস্টমার
+    // ============================================================
+    function renderTopCustomers(sales) {
+      const custMap = {};
+      sales.forEach(s => {
+        const key = s.customerName || 'সাধারণ ক্রেতা';
+        if (!custMap[key]) custMap[key] = { name:key, count:0, amount:0 };
+        custMap[key].count++;
+        custMap[key].amount += (s.totalAmount||0);
+      });
+
+      const top5 = Object.values(custMap).sort((a,b)=>b.amount-a.amount).slice(0,5);
+
+      document.getElementById('topCustomers').innerHTML = top5.length
+        ? top5.map((c, i) => `
+          <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg p-2">
+            <span class="w-5 h-5 rounded bg-purple-500/20 text-purple-400 text-[9px] font-black flex items-center justify-center flex-shrink-0">${i+1}</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-[10px] font-bold text-white truncate">${escapeHtml(c.name)}</p>
+              <p class="text-[8px] text-slate-500">${c.count} টি লেনদেন</p>
+            </div>
+            <span class="text-[10px] font-black text-cyan-400">${fmt(c.amount)}</span>
+          </div>
+        `).join('')
+        : '<p class="text-center text-slate-500 text-[10px] py-2">ডেটা নেই</p>';
+    }
+
+    // ============================================================
+    // স্টক অ্যালার্ট
+    // ============================================================
+    function renderStockAlerts() {
+      const alerts = db.products
+        .filter(p => (p.qty||0) <= (p.reorderLevel||5))
+        .sort((a,b) => (a.qty||0) - (b.qty||0))
+        .slice(0, 10);
+
+      const cont = document.getElementById('stockAlerts');
+      if (alerts.length === 0) {
+        cont.innerHTML = '<p class="text-center text-emerald-400 text-xs py-3">✅ সব স্টক পর্যাপ্ত</p>';
+        return;
+      }
+
+      cont.innerHTML = alerts.map(p => {
+        const isOut = p.qty === 0;
+        return `
+          <div class="flex items-center gap-2 bg-slate-950 border ${isOut ? 'border-rose-500/40' : 'border-amber-500/30'} rounded-lg p-2">
+            <div class="flex-1 min-w-0">
+              <p class="text-[11px] font-bold text-white truncate">${escapeHtml(p.name)}</p>
+              <p class="text-[9px] text-slate-500">কেনা: ${fmt(p.buyPrice)} • বিক্রি: ${fmt(p.sellPrice)}</p>
+            </div>
+            <span class="text-[10px] font-black px-2 py-1 rounded ${isOut ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'}">
+              ${isOut ? 'শেষ' : p.qty + ' পিস'}
+            </span>
+            <a href="inventory.html" class="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 p-1.5 rounded active:scale-90">
+              <i data-lucide="plus" class="w-3 h-3"></i>
+            </a>
+          </div>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // ============================================================
+    // আর্থিক সারাংশ
+    // ============================================================
+    function renderFinancialSummary(range) {
+      const today = todayStr();
+
+      // Receivables
+      let totalRecv = 0, overdueRecv = 0;
+      db.dues.filter(d => !d.isCancelled).forEach(d => {
+        const due = (d.amount||0) - (d.paidAmount||0);
+        if (due > 0) { totalRecv += due; if (d.dueDate && d.dueDate < today) overdueRecv += due; }
+      });
+
+      // Payables
+      let totalPay = 0, overduePay = 0;
+      db.payables.filter(p => !p.isCancelled).forEach(p => {
+        const due = (p.amount||0) - (p.paidAmount||0);
+        if (due > 0) { totalPay += due; if (p.dueDate && p.dueDate < today) overduePay += due; }
+      });
+
+      // Stock value
+      const stockValue = db.products.reduce((s,p) => s + (p.qty||0)*(p.buyPrice||0), 0);
+      const stockItems = db.products.reduce((s,p) => s + (p.qty||0), 0);
+
+      // Today's expense
+      const todayExpense = db.expenses.filter(e => !e.isCancelled && e.date === today && e.type !== 'personal').reduce((s,e)=>s+(e.amount||0), 0);
+
+      document.getElementById('finReceivable').innerText = fmt(totalRecv);
+      document.getElementById('finReceivableOverdue').innerText = `মেয়াদ পার: ${fmt(overdueRecv)}`;
+      document.getElementById('finPayable').innerText = fmt(totalPay);
+      document.getElementById('finPayableOverdue').innerText = `মেয়াদ পার: ${fmt(overduePay)}`;
+      document.getElementById('finTodayExpense').innerText = fmt(todayExpense);
+      document.getElementById('finStockValue').innerText = fmt(stockValue);
+      document.getElementById('finStockItems').innerText = stockItems + ' পিস';
+
+      // Accounts list
+      const accountsList = document.getElementById('accountsList');
+      if (db.accounts.length === 0) {
+        accountsList.innerHTML = '<p class="text-center text-slate-500 text-[10px] py-1">কোনো অ্যাকাউন্ট নেই</p>';
+      } else {
+        accountsList.innerHTML = db.accounts.map(a => {
+          const bal = getAccountBalance(a.id);
+          return `<div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-lg p-2">
+            <span class="text-base">${a.icon||'💵'}</span>
+            <span class="text-[10px] font-bold text-slate-300 flex-1">${escapeHtml(a.name)}</span>
+            <span class="text-[11px] font-black ${bal>=0?'text-emerald-400':'text-rose-400'}">${fmt(bal)}</span>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    function getAccountBalance(accId) {
+      const acc = db.accounts.find(a => a.id === accId);
+      if (!acc) return 0;
+      let bal = acc.startingBalance || 0;
+
+      const salesMap = { Cash:'cash', MFS:'bkash', Card:'bank' };
+      db.sales.filter(s => !s.isCancelled && !s.isReturned).forEach(s => {
+        if (salesMap[s.paymentMethod] === accId) bal += (s.totalAmount||0);
+      });
+      db.dues.forEach(d => {
+        if (d.payments) d.payments.forEach(p => { if (p.accountId === accId) bal += (p.amount||0); });
+      });
+      db.payables.forEach(p => {
+        if (p.payments) p.payments.forEach(pay => { if (pay.accountId === accId) bal -= (pay.amount||0); });
+      });
+      db.expenses.filter(e => !e.isCancelled).forEach(e => {
+        if ((e.cashAccount||'cash') === accId) bal -= (e.amount||0);
+      });
+      db.capital.filter(c => !c.isCancelled).forEach(c => {
+        if (c.accountId === accId) {
+          if (c.type === 'deposit') bal += (c.amount||0);
+          else if (c.type === 'withdraw') bal -= (c.amount||0);
+        }
+      });
+      db.cashTx.filter(t => !t.isCancelled && t.type === 'transfer').forEach(t => {
+        if (t.fromAccount === accId) bal -= (t.amount||0);
+        if (t.toAccount === accId) bal += (t.amount||0);
+      });
+      return bal;
+    }
+
+    // ============================================================
+    // স্মার্ট ইনসাইট
+    // ============================================================
+    function renderInsights(range, revenue, grossProfit, netProfit, opExp, margin) {
+      const insights = [];
+
+      // সপ্তাহ গ্রোথ
+      const thisWeekStart = new Date(); thisWeekStart.setDate(thisWeekStart.getDate()-7);
+      const lastWeekStart = new Date(); lastWeekStart.setDate(lastWeekStart.getDate()-14);
+
+      const thisWeekSales = db.sales.filter(s => !s.isCancelled && !s.isReturned && s.date >= thisWeekStart.toISOString().split('T')[0]).reduce((s,x)=>s+(x.totalAmount||0), 0);
+      const lastWeekSales = db.sales.filter(s => !s.isCancelled && !s.isReturned && s.date >= lastWeekStart.toISOString().split('T')[0] && s.date < thisWeekStart.toISOString().split('T')[0]).reduce((s,x)=>s+(x.totalAmount||0), 0);
+
+      if (lastWeekSales > 0) {
+        const growth = ((thisWeekSales - lastWeekSales) / lastWeekSales * 100);
+        if (growth > 10) insights.push({ type:'good', text:`📈 গত সপ্তাহের তুলনায় এই সপ্তাহে বিক্রি ${growth.toFixed(1)}% বেড়েছে` });
+        else if (growth < -10) insights.push({ type:'warn', text:`📉 গত সপ্তাহের তুলনায় এই সপ্তাহে বিক্রি ${Math.abs(growth).toFixed(1)}% কমেছে` });
+      }
+
+      // লাভ মার্জিন
+      if (margin >= 20) insights.push({ type:'good', text:`✅ চমৎকার প্রফিট মার্জিন (${margin.toFixed(1)}%)` });
+      else if (margin < 5 && revenue > 0) insights.push({ type:'bad', text:`⚠️ প্রফিট মার্জিন কম (${margin.toFixed(1)}%) — খরচ কমান` });
+
+      // লো স্টক
+      const lowStock = db.products.filter(p => (p.qty||0) <= (p.reorderLevel||5) && (p.qty||0) > 0).length;
+      if (lowStock > 0) insights.push({ type:'warn', text:`📦 ${lowStock}টি পণ্যের স্টক কম — দ্রুত রিস্টক করুন` });
+
+      // Out of stock
+      const outStock = db.products.filter(p => (p.qty||0) === 0).length;
+      if (outStock > 0) insights.push({ type:'bad', text:`🔴 ${outStock}টি পণ্য স্টক শেষ` });
+
+      // বাকি
+      const today = todayStr();
+      const overdueDue = db.dues.filter(d => !d.isCancelled && (d.amount||0)-(d.paidAmount||0) > 0 && d.dueDate && d.dueDate < today).length;
+      if (overdueDue > 0) insights.push({ type:'warn', text:`⏰ ${overdueDue}টি কাস্টমারের বাকি মেয়াদ পার` });
+
+      // টপ প্রোডাক্ট
+      const prodMap = {};
+      db.sales.filter(s => !s.isCancelled && !s.isReturned && s.date >= range.from && s.date <= range.to).forEach(s => s.items.forEach(it => {
+        prodMap[it.name] = (prodMap[it.name]||0) + ((it.unitPrice||0) - (it.buyPrice||0)) * (it.qty||0);
+      }));
+      const topProd = Object.entries(prodMap).sort((a,b)=>b[1]-a[1])[0];
+      if (topProd) insights.push({ type:'info', text:`💎 সবচেয়ে লাভজনক: ${escapeHtml(topProd[0])} (${fmt(topProd[1])})` });
+
+      // ড্যামেজ
+      const dmg = db.damages.filter(d => !d.isCancelled && d.date >= range.from && d.date <= range.to).reduce((s,d)=>s+(d.lossAmount||0), 0);
+      if (revenue > 0 && dmg > revenue * 0.05) insights.push({ type:'warn', text:`⚠️ ড্যামেজ লস বেশি (${fmt(dmg)}) — সাবধানে রাখুন` });
+
+      // ফুটার
+      if (insights.length === 0) insights.push({ type:'info', text:'💡 এখনো পর্যাপ্ত ডেটা নেই — আরও লেনদেন করুন' });
+
+      document.getElementById('insights').innerHTML = insights.slice(0, 5).map(i => {
+        const colors = { good:'border-emerald-500/30 bg-emerald-500/10 text-emerald-300', warn:'border-amber-500/30 bg-amber-500/10 text-amber-300', bad:'border-rose-500/30 bg-rose-500/10 text-rose-300', info:'border-cyan-500/30 bg-cyan-500/10 text-cyan-300' };
+        return `<div class="p-2 rounded-lg border ${colors[i.type]||colors.info} text-[11px] font-bold">${i.text}</div>`;
+      }).join('');
+    }
+
+    // ============================================================
+    // সাম্প্রতিক লেনদেন
+    // ============================================================
+    function renderRecentTransactions() {
+      const all = [];
+
+      db.sales.filter(s => !s.isCancelled).forEach(s => {
+        all.push({ date: s.date, time: s.time||'', type:'sale', title:`বিক্রি - ${s.customerName}`, amount: s.totalAmount, icon:'shopping-bag', color:'cyan', link:'history.html' });
+      });
+      db.expenses.filter(e => !e.isCancelled).forEach(e => {
+        all.push({ date: e.date, time: e.time||'', type:'expense', title:`খরচ - ${e.name||e.category}`, amount: -e.amount, icon:'receipt', color:'rose', link:'expenses.html' });
+      });
+      db.damages.filter(d => !d.isCancelled).forEach(d => {
+        all.push({ date: d.date, time: d.time||'', type:'damage', title:`ড্যামেজ - ${d.productName}`, amount: -d.lossAmount, icon:'alert-triangle', color:'red', link:'expenses.html' });
+      });
+      db.dues.forEach(d => {
+        if (d.payments) d.payments.forEach(p => {
+          all.push({ date: p.date, time: p.time||'', type:'collection', title:`আদায় - ${d.customer}`, amount: p.amount, icon:'hand-coins', color:'emerald', link:'expenses.html' });
+        });
+      });
+      db.payables.forEach(p => {
+        if (p.payments) p.payments.forEach(pay => {
+          all.push({ date: pay.date, time: pay.time||'', type:'supplier-pay', title:`পরিশোধ - ${p.supplier}`, amount: -pay.amount, icon:'send', color:'purple', link:'expenses.html' });
+        });
+      });
+      db.capital.filter(c => !c.isCancelled).forEach(c => {
+        all.push({ date: c.date, time: c.time||'', type: c.type, title: c.type==='deposit'?'মূলধন যোগ':'উত্তোলন', amount: c.type==='deposit'?c.amount:-c.amount, icon: c.type==='deposit'?'arrow-down-circle':'arrow-up-circle', color: c.type==='deposit'?'cyan':'orange', link:'expenses.html' });
+      });
+
+      all.sort((a,b) => (b.date+(b.time||'')).localeCompare(a.date+(a.time||'')));
+      const recent = all.slice(0, 10);
+
+      const cont = document.getElementById('recentTransactions');
+      if (recent.length === 0) {
+        cont.innerHTML = '<p class="text-center text-slate-500 text-xs py-6">কোনো লেনদেন নেই</p>';
+        return;
+      }
+
+      cont.innerHTML = recent.map(t => {
+        const isIn = t.amount > 0;
+        const sign = isIn ? '+' : '';
+        return `<a href="${t.link}" class="flex items-center gap-2 py-1.5 border-b border-slate-800 last:border-0 active:bg-slate-800/50">
+          <div class="w-7 h-7 rounded-lg bg-${t.color}-500/15 text-${t.color}-400 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="${t.icon}" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[10px] font-bold text-white truncate">${escapeHtml(t.title)}</p>
+            <p class="text-[9px] text-slate-500">${t.date} ${t.time}</p>
+          </div>
+          <span class="text-[11px] font-black ${isIn ? 'text-emerald-400' : 'text-rose-400'}">${sign}${fmt(t.amount)}</span>
+        </a>`;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // ============================================================
+    // সময় আপডেট
+    // ============================================================
+    function updateDateTime() {
+      const now = new Date();
+      const months = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+      const days = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+      document.getElementById('currentDateText').innerText = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+      document.getElementById('currentTimeText').innerText = now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+
+      const hour = now.getHours();
+      let greeting = 'শুভ রাত্রি 🌙';
+      if (hour >= 5 && hour < 12) greeting = 'শুভ সকাল ☀️';
+      else if (hour >= 12 && hour < 17) greeting = 'শুভ দুপুর 🌤️';
+      else if (hour >= 17 && hour < 21) greeting = 'শুভ সন্ধ্যা 🌆';
+      else greeting = 'শুভ রাত্রি 🌙';
+      document.getElementById('greetingText').innerText = greeting;
+    }
+
+    // ============================================================
+    // সেটিংস
+    // ============================================================
+    function openSettingsMenu() { openModal('settingsModal'); }
+
+    // ============================================================
+    // গুগল শিট সিঙ্ক
+    // ============================================================
+    function fetchLiveData(manual) {
+      const btn = document.getElementById('btnSync');
+      const txt = document.getElementById('syncText');
+      const pulse = document.getElementById('syncPulse');
+      if (btn) btn.innerHTML = '<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> সিঙ্ক';
+      if (txt) txt.innerText = 'সিঙ্ক...';
+      if (pulse) pulse.className = 'w-2 h-2 rounded-full bg-amber-400 pulse-dot';
+      lucide.createIcons();
+
+      const cb = 'gs_'+Date.now();
+      const s = document.createElement('script');
+      let done = false;
+      const cleanup = () => { delete window[cb]; if (s.parentNode) s.parentNode.removeChild(s); };
+
+      window[cb] = (data) => {
+        if (done) return; done = true; cleanup();
+        if (data && data.status === 'success') {
+          if (Array.isArray(data.sales)) { db.sales = data.sales; localStorage.setItem(KEYS.sales, JSON.stringify(db.sales)); }
+          if (Array.isArray(data.products)) { db.products = data.products; localStorage.setItem(KEYS.products, JSON.stringify(db.products)); }
+          if (Array.isArray(data.expenses)) { db.expenses = data.expenses; localStorage.setItem(KEYS.expenses, JSON.stringify(db.expenses)); }
+          if (Array.isArray(data.damages)) { db.damages = data.damages; localStorage.setItem(KEYS.damages, JSON.stringify(db.damages)); }
+          if (Array.isArray(data.dues)) { db.dues = data.dues; localStorage.setItem(KEYS.dues, JSON.stringify(db.dues)); }
+
+          if (txt) txt.innerText = 'লাইভ';
+          if (pulse) pulse.className = 'w-2 h-2 rounded-full bg-emerald-400';
+          renderAll();
+          if (manual) toast('✅ ডেটা লোড হয়েছে');
+        }
+        if (btn) btn.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>সিঙ্ক</span>';
+        lucide.createIcons();
+      };
+      s.onerror = () => {
+        if (done) return; done = true; cleanup();
+        if (btn) btn.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-400"></span><span>অফলাইন</span>';
+        if (txt) txt.innerText = 'সিঙ্ক';
+        if (pulse) pulse.className = 'w-2 h-2 rounded-full bg-rose-400';
+        lucide.createIcons();
+      };
+      s.src = `${GOOGLE_SCRIPT_URL}?callback=${cb}`;
+      document.body.appendChild(s);
+      setTimeout(() => { if (!done) { done = true; cleanup(); } }, 6000);
+    }
+
+    // ============================================================
+    // ইনিশিয়ালাইজ
+    // ============================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadDB();
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+      setDateFilter('today');
+      lucide.createIcons();
+      setTimeout(() => fetchLiveData(false), 800);
+    });
+
+    document.addEventListener('click', (e) => {
+      ['customRangeModal','settingsModal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.classList.contains('hidden') && e.target === el) closeModal(id);
+      });
+    });
+  </script>
+</body>
+</html>

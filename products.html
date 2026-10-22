@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Talha Tech - পণ্য ক্যাটালগ</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&display=swap');
+    * { font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .animate-fade-in { animation: fadeIn 0.2s ease-out; }
+    
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+    .animate-pop { animation: pop 0.25s ease-out; }
+    
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(6, 182, 212, 0.5); }
+    }
+    .animate-glow { animation: glow 2s ease-in-out infinite; }
+    
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .pulse-dot { animation: pulseDot 1.5s infinite; }
+    
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+    
+    .glassmorphic {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    
+    mark {
+      background-color: rgba(6, 182, 212, 0.35);
+      color: #a5f3fc;
+      padding: 0 2px;
+      border-radius: 3px;
+      font-weight: 900;
+    }
+    
+    .card-hover { transition: all 0.2s ease; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    
+    .letter-chip.active {
+      background: #06b6d4;
+      color: #0f172a;
+      font-weight: 900;
+    }
+
+    /* বটম নেভিগেশনের জন্য বডিতে প্যাডিং */
+    body { padding-bottom: 75px; }
+  </style>
+</head>
+<body class="bg-[#070b14] text-slate-100 antialiased select-none text-sm min-h-screen">
+
+  <!-- ================= হেডার ================= -->
+  <header class="glassmorphic border-b border-slate-800/80 sticky top-0 z-30 shadow-lg">
+    <div class="max-w-2xl mx-auto px-4 py-3">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 via-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+            <i data-lucide="boxes" class="w-5 h-5 text-white"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h1 class="text-base font-black tracking-wide text-white leading-tight">পণ্য ক্যাটালগ</h1>
+              <span class="bg-emerald-500/20 text-emerald-300 text-[9px] font-bold px-1.5 py-0.5 rounded border border-emerald-500/30">PRODUCTS</span>
+            </div>
+            <p class="text-[10px] text-cyan-400 font-semibold">Talha Tech • সম্পূর্ণ ইনভেন্টরি</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-1.5">
+          <button onclick="fetchLiveData(true)" id="btnSync" class="bg-emerald-950/70 hover:bg-emerald-900/90 text-emerald-400 border border-emerald-500/40 px-2.5 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1 shadow active:scale-95 transition">
+            <span class="w-2 h-2 rounded-full bg-emerald-400" id="syncPulse"></span>
+            <span id="syncText">সিঙ্ক</span>
+          </button>
+          <a href="https://docs.google.com/spreadsheets/d/1zJ7UnS-yFWaJhyyAKZlUsMRn7Uip0KHpvHf1Js11HpM/edit" target="_blank" class="bg-slate-800/80 hover:bg-slate-700 text-slate-300 p-2 rounded-xl border border-slate-700/80 active:scale-95 transition">
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+          </a>
+        </div>
+      </div>
+      
+      <!-- টপ সামারি -->
+      <div class="grid grid-cols-4 gap-1.5 mt-3">
+        <div class="bg-slate-950/60 rounded-xl p-2 border border-slate-800/80 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">পণ্য</p>
+          <p class="text-sm font-black text-white" id="topStatProducts">০</p>
+        </div>
+        <div class="bg-slate-950/60 rounded-xl p-2 border border-slate-800/80 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">স্টক</p>
+          <p class="text-sm font-black text-emerald-400" id="topStatStock">০</p>
+        </div>
+        <div class="bg-slate-950/60 rounded-xl p-2 border border-slate-800/80 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">মূল্য</p>
+          <p class="text-sm font-black text-amber-400" id="topStatValue">৳০</p>
+        </div>
+        <div class="bg-slate-950/60 rounded-xl p-2 border border-slate-800/80 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">সম্ভাব্য লাভ</p>
+          <p class="text-sm font-black text-cyan-400" id="topStatProfit">৳০</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto p-3.5 pb-40 space-y-3.5">
+
+    <!-- কম স্টক অ্যালার্ট -->
+    <div id="lowStockAlert" class="hidden bg-gradient-to-r from-rose-950/60 to-red-950/40 border border-rose-500/40 rounded-2xl p-3 shadow-lg">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 animate-pulse"></i>
+          <span class="text-xs font-black text-rose-300">স্টক কম — রিস্টক করুন</span>
+        </div>
+        <button onclick="openReorderSuggestions()" class="text-[10px] bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 font-bold px-2 py-1 rounded-lg border border-rose-500/30 active:scale-95 transition">
+          সাজেশন দেখুন
+        </button>
+      </div>
+      <div id="lowStockList" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1"></div>
+    </div>
+
+    <!-- চার্ট সেকশন -->
+    <section class="grid grid-cols-2 gap-2">
+      <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3 shadow-sm">
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-[10px] font-bold text-slate-300 flex items-center gap-1">
+            <i data-lucide="pie-chart" class="w-3 h-3 text-indigo-400"></i> ক্যাটাগরি স্টক
+          </span>
+        </div>
+        <div class="w-full h-32 flex justify-center">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+      <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3 shadow-sm">
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-[10px] font-bold text-slate-300 flex items-center gap-1">
+            <i data-lucide="bar-chart-3" class="w-3 h-3 text-cyan-400"></i> টপ ৫ মূল্য
+          </span>
+        </div>
+        <div class="w-full h-32 flex justify-center">
+          <canvas id="topValueChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- সার্চ ও ফিল্টার (sticky) -->
+    <section class="sticky top-32 z-20 space-y-2 bg-[#070b14]/95 backdrop-blur py-1">
+      <!-- সার্চ বার -->
+      <div class="relative">
+        <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+        <input type="text" id="searchInput" oninput="onSearchInput(this.value)" placeholder="পণ্যের নাম বা ক্যাটাগরি লিখুন..." class="w-full text-sm bg-slate-900 border-2 border-slate-800 rounded-2xl pl-10 pr-10 py-3 text-white outline-none focus:border-cyan-400 font-medium shadow-lg transition">
+        <button onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-2 top-1/2 -translate-y-1/2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 p-1.5 rounded-lg active:scale-90 transition">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+        <span id="searchCount" class="hidden absolute right-10 top-1/2 -translate-y-1/2 text-[10px] bg-cyan-500/20 text-cyan-300 font-black px-2 py-0.5 rounded-full border border-cyan-500/30"></span>
+      </div>
+
+      <!-- A-Z কুইক ইন্ডেক্স -->
+      <div id="azIndex" class="flex gap-1 overflow-x-auto no-scrollbar pb-0.5"></div>
+
+      <!-- ক্যাটাগরি চিপস -->
+      <div id="categoryChips" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5"></div>
+
+      <!-- ফিল্টার রো -->
+      <div class="flex gap-1.5 items-center">
+        <!-- Stock filter -->
+        <select id="stockFilter" onchange="onFilterChange()" class="text-[11px] bg-slate-900 border border-slate-800 rounded-xl px-2 py-2 text-white outline-none focus:border-cyan-400 font-bold">
+          <option value="all">সব স্টক</option>
+          <option value="in">স্টকে আছে</option>
+          <option value="low">স্টক কম</option>
+          <option value="out">স্টক শেষ</option>
+        </select>
+
+        <!-- Sort -->
+        <select id="sortSelect" onchange="onFilterChange()" class="flex-1 text-[11px] bg-slate-900 border border-slate-800 rounded-xl px-2 py-2 text-white outline-none focus:border-cyan-400 font-bold">
+          <option value="name">নাম (A-Z)</option>
+          <option value="name_desc">নাম (Z-A)</option>
+          <option value="stock_high">স্টক (বেশি)</option>
+          <option value="stock_low">স্টক (কম)</option>
+          <option value="price_high">দাম (বেশি)</option>
+          <option value="price_low">দাম (কম)</option>
+          <option value="profit_high">লাভ (বেশি)</option>
+          <option value="recent">সর্বশেষ</option>
+        </select>
+
+        <!-- View toggle -->
+        <div class="flex bg-slate-900 border border-slate-800 rounded-xl p-0.5">
+          <button onclick="setViewMode('grid')" id="viewGridBtn" class="p-1.5 rounded-lg bg-cyan-600 text-slate-950 active:scale-90 transition">
+            <i data-lucide="grid-2x2" class="w-3.5 h-3.5"></i>
+          </button>
+          <button onclick="setViewMode('list')" id="viewListBtn" class="p-1.5 rounded-lg text-slate-400 active:scale-90 transition">
+            <i data-lucide="list" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Reset filters -->
+        <button onclick="resetFilters()" title="রিসেট" class="bg-slate-800 hover:bg-slate-700 text-slate-400 p-2 rounded-xl active:scale-90 transition">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <!-- প্রাইস রেঞ্জ -->
+      <div class="flex gap-1.5 items-center text-[11px]">
+        <span class="text-slate-500 font-bold px-1">দাম:</span>
+        <input type="number" id="minPrice" placeholder="সর্বনিম্ন" oninput="onFilterChange()" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-white outline-none focus:border-cyan-400 font-bold">
+        <span class="text-slate-600">—</span>
+        <input type="number" id="maxPrice" placeholder="সর্বোচ্চ" oninput="onFilterChange()" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-white outline-none focus:border-cyan-400 font-bold">
+      </div>
+
+      <!-- Results info -->
+      <div class="flex justify-between items-center text-[10px] text-slate-500 px-1">
+        <span id="resultsInfo">সব পণ্য</span>
+        <span id="bulkSelectAll" class="hidden">
+          <button onclick="toggleSelectAll()" class="text-cyan-400 font-bold hover:text-cyan-300">
+            <i data-lucide="check-square" class="w-3 h-3 inline"></i> সব সিলেক্ট
+          </button>
+        </span>
+      </div>
+    </section>
+
+    <!-- প্রোডাক্ট ডিসপ্লে -->
+    <section id="productsContainer"></section>
+
+  </main>
+
+  <!-- ================= বাল্ক অ্যাকশন বার ================= -->
+  <div id="bulkActionBar" class="hidden fixed bottom-24 left-0 right-0 z-40 max-w-2xl mx-auto px-3.5 pb-1 pointer-events-none">
+    <div class="pointer-events-auto bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-3 shadow-2xl flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="bg-white/20 text-white text-xs font-black px-2.5 py-1 rounded-lg" id="selectedCount">০</span>
+        <span class="text-xs font-bold text-white">টি সিলেক্টেড</span>
+      </div>
+      <div class="flex gap-1.5">
+        <button onclick="exportSelectedCSV()" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold active:scale-95 transition flex items-center gap-1">
+          <i data-lucide="download" class="w-3 h-3"></i> এক্সপোর্ট
+        </button>
+        <button onclick="deleteSelectedConfirm()" class="bg-rose-500 hover:bg-rose-400 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold active:scale-95 transition flex items-center gap-1">
+          <i data-lucide="trash-2" class="w-3 h-3"></i> ডিলিট
+        </button>
+        <button onclick="clearSelection()" class="bg-slate-800/80 hover:bg-slate-800 text-slate-300 p-1.5 rounded-lg active:scale-95 transition">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= এডিট মডাল ================= -->
+  <div id="editModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="pencil" class="w-4 h-4 text-cyan-400"></i> পণ্য এডিট
+        </h3>
+        <button onclick="closeEditModal()" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <input type="hidden" id="editId">
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">পণ্যের নাম *</label>
+          <input type="text" id="editName" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-cyan-400 font-medium">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">ক্যাটাগরি</label>
+          <select id="editCategory" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-2.5 text-white outline-none focus:border-cyan-400"></select>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">স্টক</label>
+            <input type="number" id="editQty" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-cyan-400 font-bold text-center">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">কেনা ৳</label>
+            <input type="number" id="editBuy" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-amber-400 outline-none focus:border-cyan-400 font-bold text-center">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">বিক্রি ৳</label>
+            <input type="number" id="editSell" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-emerald-400 outline-none focus:border-cyan-400 font-bold text-center">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">রিঅর্ডার লেভেল</label>
+            <input type="number" id="editReorder" value="5" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-cyan-400 font-bold text-center">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">সাপ্লায়ার</label>
+            <input type="text" id="editSupplier" placeholder="ঐচ্ছিক" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-cyan-400">
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">নোট</label>
+          <input type="text" id="editNotes" placeholder="ঐচ্ছিক" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-cyan-400">
+        </div>
+        <div id="editProfitPreview" class="hidden p-2.5 rounded-xl text-xs font-bold text-center"></div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="closeEditModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-2xl text-xs active:scale-95 transition">বাতিল</button>
+          <button onclick="saveEditProduct()" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black py-2.5 rounded-2xl text-xs flex justify-center items-center gap-1 active:scale-95 transition">
+            <i data-lucide="check" class="w-4 h-4"></i> সেভ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ড্যামেজ মডাল ================= -->
+  <div id="damageModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-rose-500/40 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-rose-500/30 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i> মাল নষ্ট/ড্যামেজ এন্ট্রি
+        </h3>
+        <button onclick="closeDamageModal()" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <input type="hidden" id="damageId">
+        <div class="bg-slate-950 border border-slate-800 p-3 rounded-2xl">
+          <p class="text-sm font-black text-white" id="damageProdName">--</p>
+          <p class="text-xs text-slate-400 mt-1">স্টক: <b class="text-cyan-400" id="damageProdStock">০</b> • কেনা: <b class="text-amber-400" id="damageProdBuy">৳০</b></p>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">নষ্ট পরিমাণ (পিস)</label>
+          <input type="number" id="damageQty" min="1" value="1" oninput="updateDamagePreview()" class="w-full text-sm bg-slate-950 border-2 border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-rose-400 font-black text-center">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">কারণ</label>
+          <select id="damageReason" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-2.5 text-white outline-none focus:border-rose-400">
+            <option value="ভেঙে গেছে">ভেঙে গেছে</option>
+            <option value="পড়ে ভেঙেছে">পড়ে ভেঙেছে</option>
+            <option value="ওয়ারেন্টি সমস্যা">ওয়ারেন্টি সমস্যা</option>
+            <option value="কাস্টমার ফেরত">কাস্টমার ফেরত</option>
+            <option value="মেয়াদ শেষ">মেয়াদ শেষ</option>
+            <option value="চুরি হয়েছে">চুরি হয়েছে</option>
+            <option value="অন্য কারণ">অন্য কারণ</option>
+          </select>
+        </div>
+        <div class="bg-rose-950/40 border border-rose-500/40 p-3 rounded-xl flex justify-between items-center">
+          <span class="text-xs font-bold text-rose-300">সম্ভাব্য লস:</span>
+          <span class="text-lg font-black text-rose-300" id="damagePreview">৳০</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="closeDamageModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-2xl text-xs active:scale-95 transition">বাতিল</button>
+          <button onclick="saveDamage()" class="bg-rose-600 hover:bg-rose-500 text-white font-black py-2.5 rounded-2xl text-xs flex justify-center items-center gap-1 active:scale-95 transition">
+            <i data-lucide="check" class="w-4 h-4"></i> সেভ করুন
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= রিস্টক মডাল ================= -->
+  <div id="restockModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-emerald-500/40 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-emerald-500/30 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-400"></i> কুইক রিস্টক
+        </h3>
+        <button onclick="closeRestockModal()" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <input type="hidden" id="restockId">
+        <div class="bg-slate-950 border border-slate-800 p-3 rounded-2xl">
+          <p class="text-sm font-black text-white" id="restockProdName">--</p>
+          <p class="text-xs text-slate-400 mt-1">বর্তমান স্টক: <b class="text-cyan-400" id="restockCurrentStock">০</b> পিস</p>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">যোগ করার পরিমাণ (পিস)</label>
+          <input type="number" id="restockQty" value="10" min="1" class="w-full text-sm bg-slate-950 border-2 border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-emerald-400 font-black text-center">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">নতুন কেনা দর (ঐচ্ছিক)</label>
+          <input type="number" id="restockBuyPrice" placeholder="আগের দর থাকবে" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-amber-400 outline-none focus:border-emerald-400 font-bold text-center">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="closeRestockModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-2xl text-xs active:scale-95 transition">বাতিল</button>
+          <button onclick="saveRestock()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2.5 rounded-2xl text-xs flex justify-center items-center gap-1 active:scale-95 transition">
+            <i data-lucide="plus" class="w-4 h-4"></i> যোগ করুন
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ডিটেইল মডাল ================= -->
+  <div id="detailModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up" id="detailContent"></div>
+  </div>
+
+  <!-- ================= ডিলিট কনফার্ম ================= -->
+  <div id="confirmModal" class="hidden fixed inset-0 z-[55] bg-black/85 backdrop-blur-sm p-3 flex items-center justify-center">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-4 shadow-2xl space-y-3 animate-slide-up">
+      <div class="text-center">
+        <div class="w-14 h-14 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center mx-auto mb-2">
+          <i data-lucide="alert-triangle" class="w-7 h-7 text-rose-400"></i>
+        </div>
+        <h3 class="text-sm font-black text-white" id="confirmTitle">নিশ্চিত করুন</h3>
+        <p class="text-[11px] text-slate-400 mt-1" id="confirmText">আপনি কি নিশ্চিত?</p>
+      </div>
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button onclick="closeConfirm()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-2xl text-xs active:scale-95 transition">বাতিল</button>
+        <button onclick="confirmAction()" class="bg-rose-600 hover:bg-rose-500 text-white font-black py-2.5 rounded-2xl text-xs active:scale-95 transition">হ্যাঁ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= রিঅর্ডার সাজেশন ================= -->
+  <div id="reorderModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-amber-500/40 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-amber-500/30 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="shopping-cart" class="w-4 h-4 text-amber-400"></i> কেনাকাটার তালিকা
+        </h3>
+        <button onclick="closeReorder()" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-2 max-h-[70vh] overflow-y-auto no-scrollbar" id="reorderList"></div>
+      <div class="p-3 border-t border-slate-800 flex gap-2">
+        <button onclick="copyReorderList()" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-black py-2.5 rounded-xl text-xs flex justify-center items-center gap-1.5 active:scale-95 transition">
+          <i data-lucide="copy" class="w-4 h-4"></i> কপি করুন
+        </button>
+        <button onclick="closeReorder()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2.5 rounded-xl text-xs active:scale-95 transition">বন্ধ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= টোস্ট ================= -->
+  <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 opacity-0 pointer-events-none">
+    <i data-lucide="check-circle-2" class="w-4 h-4" id="toastIcon"></i>
+    <span id="toastMsg">সফল!</span>
+  </div>
+
+  <!-- ================= ইউনিভার্সাল বটম নেভিগেশন বার ================= -->
+  <nav class="fixed bottom-0 left-0 right-0 glassmorphic border-t border-slate-800 z-50">
+    <div class="max-w-3xl mx-auto grid grid-cols-7 text-center py-2 px-1">
+      <a href="index.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">হোম</span>
+      </a>
+      <a href="pos.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">বিক্রি</span>
+      </a>
+      <a href="inventory.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="package-plus" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">মাল এন্ট্রি</span>
+      </a>
+      <!-- এই পেজটি একটিভ -->
+      <a href="products.html" class="flex flex-col items-center gap-0.5 text-cyan-400 transition active:scale-95">
+        <i data-lucide="boxes" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">পণ্য</span>
+      </a>
+      <a href="expenses.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="receipt" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">খরচ/হিসাব</span>
+      </a>
+      <a href="history.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="history" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">হিস্ট্রি</span>
+      </a>
+      <a href="reports.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">রিপোর্ট</span>
+      </a>
+    </div>
+  </nav>
+
+  <script>
+    // ============================================================
+    // 🔧 কনফিগ
+    // ============================================================
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyqJOsL_DK29otfshT_RBZjbgj0_OCxCsKt1I9rKtZauz64o3YEB2boYhzs7WxNX30m/exec";
+    const STORAGE = {
+      products: 'tt_master_products',
+      categories: 'tt_master_categories',
+      sales: 'tt_master_sales',
+      damages: 'tt_master_damages',
+      expenses: 'tt_master_expenses',
+      favorites: 'tt_favorite_products'
+    };
+
+    // ============================================================
+    // 💾 স্টেট
+    // ============================================================
+    let db = { products: [], categories: [], sales: [], damages: [], expenses: [], favorites: [] };
+    let state = {
+      searchQuery: '',
+      categoryFilter: 'all',
+      stockFilter: 'all',
+      sortBy: 'name',
+      viewMode: 'grid',
+      minPrice: 0,
+      maxPrice: Infinity,
+      selected: new Set(),
+      currentProduct: null,
+      letterFilter: ''
+    };
+    let confirmCallback = null;
+    let chartCategory = null, chartTopValue = null;
+
+    // ============================================================
+    // 🛠️ ইউটিলিটি
+    // ============================================================
+    const fmt = (n) => '৳' + Math.round(Number(n) || 0).toLocaleString('en-IN');
+    const todayStr = () => new Date().toISOString().split('T')[0];
+    const escapeHtml = (s) => String(s || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    
+    function highlight(text, query) {
+      const safe = escapeHtml(text);
+      if (!query) return safe;
+      const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+      return safe.replace(regex, '<mark>$1</mark>');
+    }
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      const m = document.getElementById('toastMsg');
+      const i = document.getElementById('toastIcon');
+      m.innerText = msg;
+      if (type === 'success') {
+        t.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950';
+        i.setAttribute('data-lucide', 'check-circle-2');
+      } else if (type === 'error') {
+        t.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-rose-500 to-red-600 text-white';
+        i.setAttribute('data-lucide', 'alert-circle');
+      } else {
+        t.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950';
+        i.setAttribute('data-lucide', 'info');
+      }
+      lucide.createIcons();
+      t.classList.remove('opacity-0', 'pointer-events-none');
+      clearTimeout(window._tt);
+      window._tt = setTimeout(() => t.classList.add('opacity-0', 'pointer-events-none'), 2500);
+    }
+
+    function showConfirm(title, text, cb) {
+      document.getElementById('confirmTitle').innerText = title;
+      document.getElementById('confirmText').innerText = text;
+      confirmCallback = cb;
+      document.getElementById('confirmModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+    function closeConfirm() { document.getElementById('confirmModal').classList.add('hidden'); confirmCallback = null; }
+    function confirmAction() { if (confirmCallback) confirmCallback(); closeConfirm(); }
+
+    // ============================================================
+    // 💾 ডাটা লোড/সেভ
+    // ============================================================
+    function loadDB() {
+      try {
+        const p = localStorage.getItem(STORAGE.products);
+        if (p) db.products = (JSON.parse(p) || []).map(prod => ({
+          id: prod.id || 'p_' + Math.random().toString(36).slice(2, 9),
+          name: prod.name || '',
+          category: prod.category || 'গ্যাজেট',
+          qty: Math.max(0, parseInt(prod.qty) || 0),
+          buyPrice: Math.max(0, parseFloat(prod.buyPrice) || 0),
+          sellPrice: Math.max(0, parseFloat(prod.sellPrice) || 0),
+          reorderLevel: Math.max(0, parseInt(prod.reorderLevel) || 5),
+          supplier: prod.supplier || '',
+          notes: prod.notes || '',
+          date: prod.date || '',
+          lastUpdated: prod.lastUpdated || prod.date || todayStr()
+        }));
+
+        const c = localStorage.getItem(STORAGE.categories);
+        if (c) db.categories = JSON.parse(c) || [];
+        if (db.categories.length === 0) db.categories = ['চার্জিং কেবল', 'চার্জার', 'গ্লাস/কভার', 'ইয়ারফোন/TWS', 'গ্যাজেট'];
+
+        const s = localStorage.getItem(STORAGE.sales);
+        if (s) db.sales = JSON.parse(s) || [];
+
+        const d = localStorage.getItem(STORAGE.damages);
+        if (d) db.damages = JSON.parse(d) || [];
+
+        const e = localStorage.getItem(STORAGE.expenses);
+        if (e) db.expenses = JSON.parse(e) || [];
+
+        const f = localStorage.getItem(STORAGE.favorites);
+        if (f) db.favorites = JSON.parse(f) || [];
+      } catch (err) { console.warn('লোড এরর:', err); }
+    }
+
+    function saveDB() {
+      localStorage.setItem(STORAGE.products, JSON.stringify(db.products));
+      localStorage.setItem(STORAGE.categories, JSON.stringify(db.categories));
+      localStorage.setItem(STORAGE.damages, JSON.stringify(db.damages));
+      localStorage.setItem(STORAGE.expenses, JSON.stringify(db.expenses));
+      localStorage.setItem(STORAGE.favorites, JSON.stringify(db.favorites));
+    }
+
+    // ============================================================
+    // ☁️ গুগল শিট সিঙ্ক
+    // ============================================================
+    function fetchLiveData(manual = false) {
+      const btn = document.getElementById('btnSync');
+      const txt = document.getElementById('syncText');
+      const pulse = document.getElementById('syncPulse');
+      if (btn) btn.innerHTML = '<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> সিঙ্ক';
+      if (txt) txt.innerText = 'সিঙ্ক...';
+      if (pulse) pulse.className = 'w-2 h-2 rounded-full bg-amber-400 pulse-dot';
+      lucide.createIcons();
+
+      const cb = 'cb_' + Date.now();
+      const s = document.createElement('script');
+      let done = false;
+      const cleanup = () => { delete window[cb]; if (s.parentNode) s.parentNode.removeChild(s); };
+      window[cb] = (data) => {
+        if (done) return; done = true; cleanup();
+        if (data && data.status === 'success') {
+          if (Array.isArray(data.products) && data.products.length > 0) {
+            db.products = data.products.map(prod => ({
+              id: prod.id || 'p_' + Math.random().toString(36).slice(2, 9),
+              name: prod.name || '',
+              category: prod.category || 'গ্যাজেট',
+              qty: Math.max(0, parseInt(prod.qty) || 0),
+              buyPrice: Math.max(0, parseFloat(prod.buyPrice) || 0),
+              sellPrice: Math.max(0, parseFloat(prod.sellPrice) || 0),
+              reorderLevel: Math.max(0, parseInt(prod.reorderLevel) || 5),
+              supplier: prod.supplier || '',
+              notes: prod.notes || '',
+              date: prod.date || '',
+              lastUpdated: prod.lastUpdated || prod.date || todayStr()
+            }));
+          }
+          if (Array.isArray(data.damages)) db.damages = data.damages;
+          saveDB();
+          renderAll();
+          if (txt) txt.innerText = 'লাইভ';
+          if (pulse) pulse.className = 'w-2 h-2 rounded-full bg-emerald-400';
+          if (manual) showToast(`✅ ${db.products.length}টি পণ্য লোড হয়েছে`);
+        } else {
+          if (txt) txt.innerText = 'সিঙ্ক';
+          if (pulse) pulse.className = 'w-2 h-2 rounded-full bg-amber-400';
+        }
+        if (btn) btn.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>সিঙ্ক</span>';
+        lucide.createIcons();
+      };
+      s.onerror = () => {
+        if (done) return; done = true; cleanup();
+        if (btn) btn.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-400"></span><span>অফলাইন</span>';
+        if (txt) txt.innerText = 'সিঙ্ক';
+        if (pulse) pulse.className = 'w-2 h-2 rounded-full bg-rose-400';
+        lucide.createIcons();
+      };
+      s.src = `${GOOGLE_SCRIPT_URL}?callback=${cb}`;
+      document.body.appendChild(s);
+      setTimeout(() => { if (!done) { done = true; cleanup(); } }, 6000);
+    }
+
+    function syncToSheet(action, payload) {
+      if (!GOOGLE_SCRIPT_URL) return;
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...payload })
+      }).catch(e => console.warn('সিঙ্ক এরর:', e));
+    }
+
+    // ============================================================
+    // 🔍 সার্চ ও ফিল্টার
+    // ============================================================
+    function onSearchInput(val) {
+      state.searchQuery = (val || '').toLowerCase().trim();
+      state.letterFilter = '';
+      updateLetterChips();
+      document.getElementById('clearSearchBtn').classList.toggle('hidden', !val);
+      renderProducts();
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      state.searchQuery = '';
+      state.letterFilter = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      updateLetterChips();
+      renderProducts();
+    }
+
+    function filterByLetter(letter) {
+      state.letterFilter = letter;
+      document.getElementById('searchInput').value = letter;
+      state.searchQuery = letter.toLowerCase();
+      document.getElementById('clearSearchBtn').classList.remove('hidden');
+      updateLetterChips();
+      renderProducts();
+      showToast(`"${letter}" অক্ষরের পণ্য`, 'info');
+    }
+
+    function onFilterChange() {
+      state.stockFilter = document.getElementById('stockFilter').value;
+      state.sortBy = document.getElementById('sortSelect').value;
+      state.minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+      state.maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+      renderProducts();
+    }
+
+    function setViewMode(mode) {
+      state.viewMode = mode;
+      const gridBtn = document.getElementById('viewGridBtn');
+      const listBtn = document.getElementById('viewListBtn');
+      if (mode === 'grid') {
+        gridBtn.className = 'p-1.5 rounded-lg bg-cyan-600 text-slate-950 active:scale-90 transition';
+        listBtn.className = 'p-1.5 rounded-lg text-slate-400 active:scale-90 transition';
+      } else {
+        gridBtn.className = 'p-1.5 rounded-lg text-slate-400 active:scale-90 transition';
+        listBtn.className = 'p-1.5 rounded-lg bg-cyan-600 text-slate-950 active:scale-90 transition';
+      }
+      renderProducts();
+    }
+
+    function resetFilters() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('stockFilter').value = 'all';
+      document.getElementById('sortSelect').value = 'name';
+      document.getElementById('minPrice').value = '';
+      document.getElementById('maxPrice').value = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      state.searchQuery = '';
+      state.letterFilter = '';
+      state.categoryFilter = 'all';
+      state.stockFilter = 'all';
+      state.sortBy = 'name';
+      state.minPrice = 0;
+      state.maxPrice = Infinity;
+      updateLetterChips();
+      renderCategoryChips();
+      renderProducts();
+      showToast('ফিল্টার রিসেট হয়েছে', 'info');
+    }
+
+    function setCategoryFilter(cat) {
+      state.categoryFilter = cat;
+      renderCategoryChips();
+      renderProducts();
+    }
+
+    function updateLetterChips() {
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+      const az = document.getElementById('azIndex');
+      az.innerHTML = letters.map(l => {
+        const hasProducts = db.products.some(p => (p.name || '').toUpperCase().startsWith(l));
+        const isActive = state.letterFilter === l;
+        return `<button onclick="filterByLetter('${l}')" ${!hasProducts ? 'disabled' : ''} class="letter-chip ${isActive ? 'active' : ''} ${!hasProducts ? 'opacity-30 cursor-not-allowed bg-slate-900 text-slate-600' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'} w-7 h-7 rounded-lg text-[11px] font-black active:scale-90 transition flex-shrink-0">${l}</button>`;
+      }).join('');
+    }
+
+    function renderCategoryChips() {
+      const wrap = document.getElementById('categoryChips');
+      const counts = {};
+      db.products.forEach(p => { counts[p.category] = (counts[p.category] || 0) + 1; });
+      
+      const allBtn = `<button onclick="setCategoryFilter('all')" class="category-chip ${state.categoryFilter === 'all' ? 'bg-cyan-600 text-slate-950' : 'bg-slate-800 text-slate-400'} px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">সব (${db.products.length})</button>`;
+      
+      const catBtns = db.categories.map(cat => {
+        const count = counts[cat] || 0;
+        return `<button onclick="setCategoryFilter('${cat.replace(/'/g,"\\'")}')" class="category-chip ${state.categoryFilter === cat ? 'bg-cyan-600 text-slate-950' : 'bg-slate-800 text-slate-400'} px-3 py-1.5 rounded-full text-[11px] font-black whitespace-nowrap active:scale-95 transition flex-shrink-0">${cat} (${count})</button>`;
+      }).join('');
+      
+      wrap.innerHTML = allBtn + catBtns;
+    }
+
+    function getFilteredProducts() {
+      let result = [...db.products];
+
+      // সার্চ
+      if (state.searchQuery) {
+        const q = state.searchQuery;
+        result = result.filter(p =>
+          (p.name || '').toLowerCase().includes(q) ||
+          (p.category || '').toLowerCase().includes(q)
+        );
+      }
+
+      // ক্যাটাগরি
+      if (state.categoryFilter !== 'all') {
+        result = result.filter(p => p.category === state.categoryFilter);
+      }
+
+      // স্টক ফিল্টার
+      if (state.stockFilter === 'in') result = result.filter(p => p.qty > 0);
+      else if (state.stockFilter === 'low') result = result.filter(p => p.qty > 0 && p.qty <= (p.reorderLevel || 5));
+      else if (state.stockFilter === 'out') result = result.filter(p => p.qty === 0);
+
+      // প্রাইস রেঞ্জ
+      if (state.minPrice > 0) result = result.filter(p => p.sellPrice >= state.minPrice);
+      if (state.maxPrice !== Infinity) result = result.filter(p => p.sellPrice <= state.maxPrice);
+
+      // সর্ট
+      const favs = new Set(db.favorites);
+      result.sort((a, b) => {
+        // ফেভারিট উপরে
+        const aFav = favs.has(a.id) ? 1 : 0;
+        const bFav = favs.has(b.id) ? 1 : 0;
+        if (aFav !== bFav) return bFav - aFav;
+
+        switch (state.sortBy) {
+          case 'name': return (a.name || '').localeCompare(b.name || '', 'bn');
+          case 'name_desc': return (b.name || '').localeCompare(a.name || '', 'bn');
+          case 'stock_high': return b.qty - a.qty;
+          case 'stock_low': return a.qty - b.qty;
+          case 'price_high': return b.sellPrice - a.sellPrice;
+          case 'price_low': return a.sellPrice - b.sellPrice;
+          case 'profit_high': return ((b.sellPrice - b.buyPrice) * b.qty) - ((a.sellPrice - a.buyPrice) * a.qty);
+          case 'recent': return (b.lastUpdated || '').localeCompare(a.lastUpdated || '');
+          default: return 0;
+        }
+      });
+
+      return result;
+    }
+
+    // ============================================================
+    // 🎨 রেন্ডার
+    // ============================================================
+    function renderAll() {
+      updateTopStats();
+      renderCategoryChips();
+      updateLetterChips();
+      renderLowStockAlert();
+      renderProducts();
+      renderCharts();
+      updateBulkBar();
+    }
+
+    function updateTopStats() {
+      const totalProducts = db.products.length;
+      const totalStock = db.products.reduce((s, p) => s + p.qty, 0);
+      const buyValue = db.products.reduce((s, p) => s + (p.qty * p.buyPrice), 0);
+      const sellValue = db.products.reduce((s, p) => s + (p.qty * p.sellPrice), 0);
+      const profit = Math.max(0, sellValue - buyValue);
+
+      document.getElementById('topStatProducts').innerText = totalProducts;
+      document.getElementById('topStatStock').innerText = totalStock;
+      document.getElementById('topStatValue').innerText = fmt(buyValue);
+      document.getElementById('topStatProfit').innerText = fmt(profit);
+    }
+
+    function renderLowStockAlert() {
+      const low = db.products.filter(p => p.qty <= (p.reorderLevel || 5)).sort((a, b) => a.qty - b.qty);
+      const alert = document.getElementById('lowStockAlert');
+      const list = document.getElementById('lowStockList');
+      
+      if (low.length === 0) {
+        alert.classList.add('hidden');
+        return;
+      }
+
+      alert.classList.remove('hidden');
+      list.innerHTML = low.slice(0, 10).map(p => `
+        <div onclick="openRestock('${p.id}')" class="bg-slate-900 border border-rose-500/40 rounded-xl p-2 min-w-[150px] active:scale-95 transition cursor-pointer">
+          <p class="text-[10px] font-black text-white truncate">${escapeHtml(p.name)}</p>
+          <div class="flex justify-between items-center mt-1">
+            <span class="text-[9px] text-rose-400 font-bold">${p.qty} পিস বাকি</span>
+            <i data-lucide="plus-circle" class="w-3 h-3 text-rose-400"></i>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function renderProducts() {
+      const container = document.getElementById('productsContainer');
+      const items = getFilteredProducts();
+      
+      document.getElementById('resultsInfo').innerText = `${items.length}টি পণ্য পাওয়া গেছে`;
+      const searchCount = document.getElementById('searchCount');
+      if (state.searchQuery) {
+        searchCount.classList.remove('hidden');
+        searchCount.innerText = items.length;
+      } else {
+        searchCount.classList.add('hidden');
+      }
+
+      if (items.length === 0) {
+        if (db.products.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-16 bg-slate-900/50 border border-slate-800 rounded-3xl">
+              <i data-lucide="package-open" class="w-16 h-16 text-slate-700 mx-auto mb-3"></i>
+              <p class="text-slate-400 text-sm font-bold">কোনো পণ্য নেই</p>
+              <p class="text-slate-500 text-xs mt-1 mb-4">প্রথমে inventory.html থেকে পণ্য যোগ করুন</p>
+              <a href="inventory.html" class="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black px-4 py-2 rounded-xl text-xs active:scale-95 transition">
+                <i data-lucide="plus" class="w-4 h-4"></i> পণ্য যোগ করুন
+              </a>
+            </div>`;
+        } else {
+          container.innerHTML = `
+            <div class="text-center py-16 bg-slate-900/50 border border-slate-800 rounded-3xl">
+              <i data-lucide="search-x" class="w-16 h-16 text-slate-700 mx-auto mb-3"></i>
+              <p class="text-slate-400 text-sm font-bold">কোনো পণ্য পাওয়া যায়নি</p>
+              <p class="text-slate-500 text-xs mt-1">সার্চ বা ফিল্টার পরিবর্তন করুন</p>
+              <button onclick="resetFilters()" class="mt-4 inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-black px-4 py-2 rounded-xl text-xs active:scale-95 transition">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i> রিসেট
+              </button>
+            </div>`;
+        }
+        lucide.createIcons();
+        return;
+      }
+
+      if (state.viewMode === 'grid') {
+        container.innerHTML = `<div class="grid grid-cols-2 gap-2">${items.map(renderGridCard).join('')}</div>`;
+      } else {
+        container.innerHTML = `<div class="space-y-2">${items.map(renderListRow).join('')}</div>`;
+      }
+      lucide.createIcons();
+    }
+
+    function renderGridCard(p) {
+      const isFav = db.favorites.includes(p.id);
+      const isOut = p.qty === 0;
+      const isLow = p.qty > 0 && p.qty <= (p.reorderLevel || 5);
+      const isSelected = state.selected.has(p.id);
+      const profit = p.sellPrice - p.buyPrice;
+      const profitPct = p.buyPrice > 0 ? ((profit / p.buyPrice) * 100).toFixed(0) : 0;
+      const stockPct = Math.min(100, (p.qty / Math.max(p.reorderLevel * 4, 20)) * 100);
+      const name = highlight(p.name, state.searchQuery);
+
+      return `
+        <div class="card-hover bg-slate-900 border ${isSelected ? 'border-indigo-500' : isOut ? 'border-slate-700 opacity-70' : isLow ? 'border-rose-500/50' : 'border-slate-800'} rounded-2xl p-2.5 space-y-2 shadow relative ${isFav ? 'ring-1 ring-amber-500/40' : ''}">
+          
+          ${isFav ? '<span class="absolute -top-1 -right-1 text-amber-400 bg-slate-900 rounded-full p-0.5"><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400"></i></span>' : ''}
+
+          <div class="flex justify-between items-start gap-1">
+            <button onclick="toggleSelect('${p.id}')" class="w-4 h-4 rounded border-2 ${isSelected ? 'bg-indigo-500 border-indigo-500' : 'border-slate-600'} flex items-center justify-center flex-shrink-0 active:scale-90">
+              ${isSelected ? '<i data-lucide="check" class="w-2.5 h-2.5 text-white"></i>' : ''}
+            </button>
+            <span class="text-[9px] font-bold text-slate-500 uppercase truncate flex-1">${escapeHtml(p.category || 'গ্যাজেট')}</span>
+            <button onclick="toggleFavorite('${p.id}')" class="text-slate-500 hover:text-amber-400 active:scale-90 transition">
+              <i data-lucide="star" class="w-3.5 h-3.5 ${isFav ? 'fill-amber-400 text-amber-400' : ''}"></i>
+            </button>
+          </div>
+
+          <div onclick="openDetail('${p.id}')" class="cursor-pointer">
+            <p class="text-xs font-black text-white leading-tight line-clamp-2 min-h-[32px]">${name}</p>
+            
+            <div class="flex items-baseline gap-1 mt-1.5">
+              <span class="text-sm font-black text-cyan-400">${fmt(p.sellPrice)}</span>
+              <span class="text-[9px] text-slate-500">${fmt(p.buyPrice)}</span>
+            </div>
+
+            ${profit > 0 ? `<p class="text-[9px] font-bold text-emerald-400 mt-0.5">+${fmt(profit)} (${profitPct}%)</p>` : profit < 0 ? `<p class="text-[9px] font-bold text-rose-400 mt-0.5">${fmt(profit)}</p>` : ''}
+
+            <div class="mt-2 space-y-1">
+              <div class="flex justify-between items-center text-[10px]">
+                <span class="text-slate-500 font-bold">স্টক</span>
+                <span class="font-black ${isOut ? 'text-rose-400' : isLow ? 'text-amber-400' : 'text-emerald-400'}">${p.qty} পিস</span>
+              </div>
+              <div class="w-full bg-slate-950 h-1 rounded-full overflow-hidden">
+                <div class="h-full rounded-full ${isOut ? 'bg-slate-700' : isLow ? 'bg-rose-500' : 'bg-emerald-500'}" style="width: ${stockPct}%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1 pt-1">
+            <button onclick="openEdit('${p.id}')" title="এডিট" class="flex-1 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 py-1.5 rounded-lg border border-cyan-500/30 active:scale-90 transition flex items-center justify-center">
+              <i data-lucide="pencil" class="w-3 h-3"></i>
+            </button>
+            <button onclick="openRestock('${p.id}')" title="রিস্টক" class="flex-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 py-1.5 rounded-lg border border-emerald-500/30 active:scale-90 transition flex items-center justify-center">
+              <i data-lucide="plus" class="w-3 h-3"></i>
+            </button>
+            <button onclick="openDamage('${p.id}')" ${isOut ? 'disabled' : ''} title="ড্যামেজ" class="flex-1 ${isOut ? 'bg-slate-800/50 text-slate-600 cursor-not-allowed' : 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-300'} py-1.5 rounded-lg border ${isOut ? 'border-slate-800' : 'border-rose-500/30'} active:scale-90 transition flex items-center justify-center">
+              <i data-lucide="alert-triangle" class="w-3 h-3"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderListRow(p) {
+      const isFav = db.favorites.includes(p.id);
+      const isOut = p.qty === 0;
+      const isLow = p.qty > 0 && p.qty <= (p.reorderLevel || 5);
+      const isSelected = state.selected.has(p.id);
+      const name = highlight(p.name, state.searchQuery);
+
+      return `
+        <div class="bg-slate-900 border ${isSelected ? 'border-indigo-500' : isOut ? 'border-slate-700 opacity-70' : isLow ? 'border-rose-500/50' : 'border-slate-800'} rounded-xl p-2.5 flex items-center gap-2 ${isFav ? 'ring-1 ring-amber-500/30' : ''}">
+          <button onclick="toggleSelect('${p.id}')" class="w-4 h-4 rounded border-2 ${isSelected ? 'bg-indigo-500 border-indigo-500' : 'border-slate-600'} flex items-center justify-center flex-shrink-0 active:scale-90">
+            ${isSelected ? '<i data-lucide="check" class="w-2.5 h-2.5 text-white"></i>' : ''}
+          </button>
+          <div onclick="openDetail('${p.id}')" class="flex-1 min-w-0 cursor-pointer">
+            <div class="flex items-center gap-1">
+              ${isFav ? '<i data-lucide="star" class="w-3 h-3 text-amber-400 fill-amber-400"></i>' : ''}
+              <p class="text-xs font-black text-white truncate">${name}</p>
+            </div>
+            <p class="text-[9px] text-slate-500">${escapeHtml(p.category || 'গ্যাজেট')}</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="text-xs font-black text-cyan-400">${fmt(p.sellPrice)}</p>
+            <p class="text-[9px] font-bold ${isOut ? 'text-rose-400' : isLow ? 'text-amber-400' : 'text-emerald-400'}">${p.qty} পিস</p>
+          </div>
+          <div class="flex items-center gap-0.5 flex-shrink-0">
+            <button onclick="openEdit('${p.id}')" class="bg-cyan-500/15 text-cyan-300 p-1.5 rounded-lg active:scale-90"><i data-lucide="pencil" class="w-3 h-3"></i></button>
+            <button onclick="openRestock('${p.id}')" class="bg-emerald-500/15 text-emerald-300 p-1.5 rounded-lg active:scale-90"><i data-lucide="plus" class="w-3 h-3"></i></button>
+            <button onclick="toggleFavorite('${p.id}')" class="text-slate-500 hover:text-amber-400 p-1.5 active:scale-90"><i data-lucide="star" class="w-3 h-3 ${isFav ? 'fill-amber-400 text-amber-400' : ''}"></i></button>
+          </div>
+        </div>
+      `;
+    }
+
+    // ============================================================
+    // 📊 চার্ট
+    // ============================================================
+    function renderCharts() {
+      // ক্যাটাগরি ডোনাট
+      const catMap = {};
+      db.products.forEach(p => {
+        const c = p.category || 'গ্যাজেট';
+        catMap[c] = (catMap[c] || 0) + p.qty;
+      });
+      const catLabels = Object.keys(catMap);
+      const catValues = Object.values(catMap);
+
+      if (chartCategory) chartCategory.destroy();
+      const ctx1 = document.getElementById('categoryChart');
+      if (ctx1) {
+        chartCategory = new Chart(ctx1.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: catLabels.length ? catLabels : ['খালি'],
+            datasets: [{ data: catValues.length ? catValues : [1], backgroundColor: ['#06b6d4','#6366f1','#10b981','#f59e0b','#ec4899','#8b5cf6'], borderWidth: 0 }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false, cutout: '60%',
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+
+      // টপ ৫ মূল্য
+      const top5 = [...db.products].map(p => ({ name: p.name, val: p.qty * p.buyPrice }))
+        .sort((a, b) => b.val - a.val).slice(0, 5);
+      
+      if (chartTopValue) chartTopValue.destroy();
+      const ctx2 = document.getElementById('topValueChart');
+      if (ctx2) {
+        chartTopValue = new Chart(ctx2.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: top5.length ? top5.map(x => x.name.slice(0, 8)) : ['খালি'],
+            datasets: [{ data: top5.length ? top5.map(x => x.val) : [0], backgroundColor: ['#06b6d4','#6366f1','#10b981','#f59e0b','#ec4899'], borderRadius: 4 }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#94a3b8', font: { size: 8 } }, grid: { display: false } },
+              y: { ticks: { color: '#94a3b8', font: { size: 8 } }, grid: { color: '#1e293b' } }
+            }
+          }
+        });
+      }
+    }
+
+    // ============================================================
+    // ⭐ ফেভারিট
+    // ============================================================
+    function toggleFavorite(id) {
+      const idx = db.favorites.indexOf(id);
+      if (idx > -1) db.favorites.splice(idx, 1);
+      else db.favorites.push(id);
+      localStorage.setItem(STORAGE.favorites, JSON.stringify(db.favorites));
+      renderProducts();
+      showToast(idx > -1 ? 'ফেভারিট থেকে সরানো হয়েছে' : '⭐ ফেভারিটে যোগ হয়েছে', 'info');
+    }
+
+    // ============================================================
+    // ☑️ সিলেকশন
+    // ============================================================
+    function toggleSelect(id) {
+      if (state.selected.has(id)) state.selected.delete(id);
+      else state.selected.add(id);
+      renderProducts();
+      updateBulkBar();
+    }
+
+    function clearSelection() {
+      state.selected.clear();
+      renderProducts();
+      updateBulkBar();
+    }
+
+    function toggleSelectAll() {
+      const items = getFilteredProducts();
+      if (state.selected.size === items.length) state.selected.clear();
+      else items.forEach(p => state.selected.add(p.id));
+      renderProducts();
+      updateBulkBar();
+    }
+
+    function updateBulkBar() {
+      const bar = document.getElementById('bulkActionBar');
+      const cnt = document.getElementById('selectedCount');
+      const selAll = document.getElementById('bulkSelectAll');
+      if (state.selected.size > 0) {
+        bar.classList.remove('hidden');
+        cnt.innerText = state.selected.size;
+        selAll.classList.remove('hidden');
+      } else {
+        bar.classList.add('hidden');
+        selAll.classList.add('hidden');
+      }
+    }
+
+    function deleteSelectedConfirm() {
+      if (state.selected.size === 0) return;
+      showConfirm('ডিলিট করবেন?', `${state.selected.size}টি পণ্য স্থায়ীভাবে মুছে যাবে।`, () => {
+        const ids = Array.from(state.selected);
+        db.products = db.products.filter(p => !state.selected.has(p.id));
+        state.selected.clear();
+        saveDB();
+        renderAll();
+        syncToSheet('deleteProducts', { productIds: ids });
+        showToast(`✅ ${ids.length}টি পণ্য ডিলিট হয়েছে`);
+      });
+    }
+
+    function exportSelectedCSV() {
+      if (state.selected.size === 0) return;
+      const items = db.products.filter(p => state.selected.has(p.id));
+      exportCSVList(items);
+    }
+
+    function exportCSVList(items) {
+      if (!items.length) { showToast('কোনো পণ্য নেই', 'error'); return; }
+      const headers = ['নাম', 'ক্যাটাগরি', 'স্টক', 'কেনা', 'বিক্রি', 'মোট কেনা মূল্য', 'মোট বিক্রয় মূল্য', 'লাভ', 'সর্বশেষ আপডেট'];
+      const rows = items.map(p => [
+        p.name, p.category, p.qty, p.buyPrice, p.sellPrice,
+        (p.qty * p.buyPrice).toFixed(2),
+        (p.qty * p.sellPrice).toFixed(2),
+        ((p.sellPrice - p.buyPrice) * p.qty).toFixed(2),
+        p.lastUpdated || ''
+      ]);
+      const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `TalhaTech_Products_${todayStr()}.csv`;
+      link.click();
+      showToast(`✅ ${items.length}টি পণ্য এক্সপোর্ট হয়েছে`);
+    }
+
+    // ============================================================
+    // ✏️ এডিট
+    // ============================================================
+    function openEdit(id) {
+      const p = db.products.find(x => x.id === id);
+      if (!p) return;
+      state.currentProduct = p;
+      document.getElementById('editId').value = p.id;
+      document.getElementById('editName').value = p.name;
+      document.getElementById('editQty').value = p.qty;
+      document.getElementById('editBuy').value = p.buyPrice;
+      document.getElementById('editSell').value = p.sellPrice;
+      document.getElementById('editReorder').value = p.reorderLevel || 5;
+      document.getElementById('editSupplier').value = p.supplier || '';
+      document.getElementById('editNotes').value = p.notes || '';
+      
+      const cats = [...db.categories];
+      if (p.category && !cats.includes(p.category)) cats.push(p.category);
+      document.getElementById('editCategory').innerHTML = cats.map(c =>
+        `<option value="${c}" ${c === p.category ? 'selected' : ''}>${c}</option>`
+      ).join('');
+
+      document.getElementById('editBuy').oninput = updateEditPreview;
+      document.getElementById('editSell').oninput = updateEditPreview;
+      updateEditPreview();
+      document.getElementById('editModal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      lucide.createIcons();
+    }
+
+    function updateEditPreview() {
+      const buy = parseFloat(document.getElementById('editBuy').value) || 0;
+      const sell = parseFloat(document.getElementById('editSell').value) || 0;
+      const prev = document.getElementById('editProfitPreview');
+      if (buy > 0 && sell > 0) {
+        const per = sell - buy;
+        const pct = ((per / buy) * 100).toFixed(1);
+        prev.innerText = `লাভ/পিস: ৳${per.toFixed(0)} (${pct}%)`;
+        prev.className = `p-2.5 rounded-xl text-xs font-bold text-center ${per >= 0 ? 'bg-emerald-950/40 border border-emerald-500/30 text-emerald-300' : 'bg-rose-950/40 border border-rose-500/30 text-rose-300'}`;
+        prev.classList.remove('hidden');
+      } else prev.classList.add('hidden');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.add('hidden');
+      document.body.style.overflow = '';
+      state.currentProduct = null;
+    }
+
+    function saveEditProduct() {
+      const id = document.getElementById('editId').value;
+      const p = db.products.find(x => x.id === id);
+      if (!p) return;
+
+      const name = document.getElementById('editName').value.trim();
+      const category = document.getElementById('editCategory').value;
+      const qty = Math.max(0, parseInt(document.getElementById('editQty').value) || 0);
+      const buy = parseFloat(document.getElementById('editBuy').value) || 0;
+      const sell = parseFloat(document.getElementById('editSell').value) || 0;
+      const reorder = Math.max(0, parseInt(document.getElementById('editReorder').value) || 5);
+      const supplier = document.getElementById('editSupplier').value.trim();
+      const notes = document.getElementById('editNotes').value.trim();
+
+      if (!name) { showToast('❌ নাম দিন', 'error'); return; }
+      if (buy <= 0) { showToast('❌ সঠিক কেনা দর দিন', 'error'); return; }
+
+      const dup = db.products.find(x => x.id !== id && x.name.toLowerCase() === name.toLowerCase());
+      if (dup) { showToast(`❌ "${name}" নামে পণ্য আছে`, 'error'); return; }
+
+      p.name = name;
+      p.category = category;
+      p.qty = qty;
+      p.buyPrice = buy;
+      p.sellPrice = sell || buy;
+      p.reorderLevel = reorder;
+      p.supplier = supplier;
+      p.notes = notes;
+      p.lastUpdated = todayStr();
+
+      if (category && !db.categories.includes(category)) db.categories.push(category);
+
+      saveDB();
+      renderAll();
+      closeEditModal();
+      syncToSheet('updateProduct', { product: p });
+      showToast(`✅ "${name}" আপডেট হয়েছে`);
+    }
+
+    // ============================================================
+    // ⚠️ ড্যামেজ
+    // ============================================================
+    function openDamage(id) {
+      const p = db.products.find(x => x.id === id);
+      if (!p || p.qty === 0) { showToast('স্টক নেই', 'error'); return; }
+      state.currentProduct = p;
+      document.getElementById('damageId').value = p.id;
+      document.getElementById('damageProdName').innerText = p.name;
+      document.getElementById('damageProdStock').innerText = p.qty;
+      document.getElementById('damageProdBuy').innerText = fmt(p.buyPrice);
+      document.getElementById('damageQty').value = 1;
+      document.getElementById('damageQty').max = p.qty;
+      document.getElementById('damageReason').value = 'ভেঙে গেছে';
+      updateDamagePreview();
+      document.getElementById('damageModal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      lucide.createIcons();
+    }
+
+    function updateDamagePreview() {
+      const id = document.getElementById('damageId').value;
+      const p = db.products.find(x => x.id === id);
+      if (!p) return;
+      const qty = parseInt(document.getElementById('damageQty').value) || 0;
+      const loss = qty * p.buyPrice;
+      document.getElementById('damagePreview').innerText = fmt(loss);
+    }
+
+    function closeDamageModal() {
+      document.getElementById('damageModal').classList.add('hidden');
+      document.body.style.overflow = '';
+      state.currentProduct = null;
+    }
+
+    function saveDamage() {
+      const id = document.getElementById('damageId').value;
+      const p = db.products.find(x => x.id === id);
+      if (!p) return;
+
+      const qty = parseInt(document.getElementById('damageQty').value) || 0;
+      const reason = document.getElementById('damageReason').value;
+
+      if (qty <= 0) { showToast('❌ সঠিক পরিমাণ দিন', 'error'); return; }
+      if (qty > p.qty) { showToast(`❌ সর্বোচ্চ ${p.qty} পিস`, 'error'); return; }
+
+      const loss = qty * p.buyPrice;
+
+      // স্টক কমানো
+      p.qty -= qty;
+      p.lastUpdated = todayStr();
+
+      // ড্যামেজ রেকর্ড
+      const dmg = {
+        id: 'dmg_' + Date.now(),
+        productId: p.id,
+        productName: p.name,
+        qty: qty,
+        buyPrice: p.buyPrice,
+        lossAmount: loss,
+        reason: reason,
+        date: todayStr(),
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      };
+      db.damages.push(dmg);
+
+      // খরচে যোগ
+      const exp = {
+        id: 'exp_dmg_' + Date.now(),
+        category: 'মাল নষ্ট/ড্যামেজ',
+        amount: loss,
+        note: `${p.name} × ${qty} পিস - ${reason}`,
+        date: todayStr()
+      };
+      db.expenses.push(exp);
+
+      saveDB();
+      renderAll();
+      closeDamageModal();
+      syncToSheet('updateProduct', { product: p });
+      syncToSheet('saveDamage', { damage: dmg });
+      syncToSheet('saveExpense', { expense: exp });
+      showToast(`✅ ${qty} পিস ড্যামেজ এন্ট্রি (লস: ${fmt(loss)})`);
+    }
+
+    // ============================================================
+    // ➕ রিস্টক
+    // ============================================================
+    function openRestock(id) {
+      const p = db.products.find(x => x.id === id);
+      if (!p) return;
+      state.currentProduct = p;
+      document.getElementById('restockId').value = p.id;
+      document.getElementById('restockProdName').innerText = p.name;
+      document.getElementById('restockCurrentStock').innerText = p.qty;
+      document.getElementById('restockQty').value = Math.max(10, (p.reorderLevel || 5) * 2);
+      document.getElementById('restockBuyPrice').value = '';
+      document.getElementById('restockModal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      lucide.createIcons();
+    }
+
+    function closeRestockModal() {
+      document.getElementById('restockModal').classList.add('hidden');
+      document.body.style.overflow = '';
+      state.currentProduct = null;
+    }
+
+    function saveRestock() {
+      const id = document.getElementById('restockId').value;
+      const p = db.products.find(x => x.id === id);
+      if (!p) return;
+
+      const qty = parseInt(document.getElementById('restockQty').value) || 0;
+      const newBuy = parseFloat(document.getElementById('restockBuyPrice').value) || 0;
+
+      if (qty <= 0) { showToast('❌ সঠিক পরিমাণ দিন', 'error'); return; }
+
+      p.qty += qty;
+      if (newBuy > 0) p.buyPrice = newBuy;
+      p.lastUpdated = todayStr();
+
+      saveDB();
+      renderAll();
+      closeRestockModal();
+      syncToSheet('updateProduct', { product: p });
+      showToast(`✅ ${qty} পিস যোগ হয়েছে (নতুন স্টক: ${p.qty})`);
+    }
+
+    // ============================================================
+    // 🔍 ডিটেইল
+    // ============================================================
+    function openDetail(id) {
+      const p = db.products.find(x => x.id === id);
+      if (!p) return;
+      const isFav = db.favorites.includes(p.id);
+      const profit = p.sellPrice - p.buyPrice;
+      const profitPct = p.buyPrice > 0 ? ((profit / p.buyPrice) * 100).toFixed(1) : 0;
+      const totalBuyVal = p.qty * p.buyPrice;
+      const totalSellVal = p.qty * p.sellPrice;
+      const totalProfit = totalSellVal - totalBuyVal;
+
+      // সাম্প্রতিক বিক্রি
+      const recentSales = (db.sales || []).filter(s => 
+        s.items && s.items.some(it => it.name === p.name)
+      ).slice(-5).reverse();
+
+      // সাম্প্রতিক ড্যামেজ
+      const recentDamages = (db.damages || []).filter(d => d.productId === p.id).slice(-3).reverse();
+
+      document.getElementById('detailContent').innerHTML = `
+        <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+          <h3 class="text-sm font-black text-white flex items-center gap-2">
+            <i data-lucide="package" class="w-4 h-4 text-cyan-400"></i> পণ্যের বিবরণ
+          </h3>
+          <button onclick="closeDetail()" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="text-center bg-gradient-to-br from-indigo-950/60 to-slate-950 border border-indigo-500/30 rounded-2xl p-4">
+            <p class="text-base font-black text-white">${escapeHtml(p.name)}</p>
+            <p class="text-[10px] text-indigo-300 font-bold uppercase mt-1">${escapeHtml(p.category || 'গ্যাজেট')}</p>
+            <div class="flex justify-center gap-1 mt-2">
+              <button onclick="toggleFavorite('${p.id}')" class="bg-${isFav ? 'amber-500' : 'slate-800'}/30 text-${isFav ? 'amber-300' : 'slate-400'} px-2 py-1 rounded-lg text-[10px] font-bold border border-${isFav ? 'amber-500' : 'slate-700'}/30 active:scale-90">
+                <i data-lucide="star" class="w-3 h-3 inline ${isFav ? 'fill-amber-400' : ''}"></i> ${isFav ? 'ফেভারিট' : 'ফেভারিট করুন'}
+              </button>
+              <button onclick="copyProductInfo('${p.id}')" class="bg-slate-800/30 text-slate-400 px-2 py-1 rounded-lg text-[10px] font-bold border border-slate-700/30 active:scale-90">
+                <i data-lucide="copy" class="w-3 h-3 inline"></i> কপি
+              </button>
+              <button onclick="shareProduct('${p.id}')" class="bg-slate-800/30 text-slate-400 px-2 py-1 rounded-lg text-[10px] font-bold border border-slate-700/30 active:scale-90">
+                <i data-lucide="share-2" class="w-3 h-3 inline"></i> শেয়ার
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+              <p class="text-[9px] text-slate-500 font-bold">বর্তমান স্টক</p>
+              <p class="text-lg font-black text-cyan-400 mt-0.5">${p.qty} <span class="text-[10px] text-slate-400">পিস</span></p>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+              <p class="text-[9px] text-slate-500 font-bold">রিঅর্ডার লেভেল</p>
+              <p class="text-lg font-black text-white mt-0.5">${p.reorderLevel || 5} <span class="text-[10px] text-slate-400">পিস</span></p>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+              <p class="text-[9px] text-slate-500 font-bold">কেনা দর</p>
+              <p class="text-lg font-black text-amber-400 mt-0.5">${fmt(p.buyPrice)}</p>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+              <p class="text-[9px] text-slate-500 font-bold">বিক্রি দর</p>
+              <p class="text-lg font-black text-emerald-400 mt-0.5">${fmt(p.sellPrice)}</p>
+            </div>
+          </div>
+
+          <div class="bg-cyan-950/40 border border-cyan-500/30 rounded-xl p-2.5 space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">লাভ/পিস</span>
+              <span class="font-black ${profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${fmt(profit)} (${profitPct}%)</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">মোট স্টক মূল্য</span>
+              <span class="font-black text-amber-400">${fmt(totalBuyVal)}</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">বিক্রয় মূল্য</span>
+              <span class="font-black text-cyan-400">${fmt(totalSellVal)}</span>
+            </div>
+            <div class="flex justify-between text-xs border-t border-cyan-500/20 pt-1">
+              <span class="text-slate-400">সম্ভাব্য লাভ</span>
+              <span class="font-black text-emerald-400">${fmt(totalProfit)}</span>
+            </div>
+          </div>
+
+          ${p.supplier ? `<div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5"><p class="text-[9px] text-slate-500 font-bold mb-1">সাপ্লায়ার</p><p class="text-xs text-white font-semibold">${escapeHtml(p.supplier)}</p></div>` : ''}
+          
+          ${p.notes ? `<div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5"><p class="text-[9px] text-slate-500 font-bold mb-1">নোট</p><p class="text-xs text-slate-300">${escapeHtml(p.notes)}</p></div>` : ''}
+
+          ${recentDamages.length > 0 ? `
+            <div class="bg-rose-950/30 border border-rose-500/30 rounded-xl p-2.5">
+              <p class="text-[10px] text-rose-300 font-bold mb-1">সাম্প্রতিক ড্যামেজ</p>
+              ${recentDamages.map(d => `<div class="flex justify-between text-[10px] text-slate-300 py-0.5"><span>${d.qty} পিস • ${d.reason}</span><span class="text-rose-400">${d.date}</span></div>`).join('')}
+            </div>
+          ` : ''}
+
+          <div class="grid grid-cols-3 gap-1.5 pt-1">
+            <button onclick="openEdit('${p.id}'); closeDetail();" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black py-2.5 rounded-xl text-[10px] active:scale-95 transition flex items-center justify-center gap-1">
+              <i data-lucide="pencil" class="w-3 h-3"></i> এডিট
+            </button>
+            <button onclick="openRestock('${p.id}'); closeDetail();" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2.5 rounded-xl text-[10px] active:scale-95 transition flex items-center justify-center gap-1">
+              <i data-lucide="plus" class="w-3 h-3"></i> রিস্টক
+            </button>
+            <button onclick="openDamage('${p.id}'); closeDetail();" ${p.qty === 0 ? 'disabled' : ''} class="${p.qty === 0 ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-500 text-white'} font-black py-2.5 rounded-xl text-[10px] active:scale-95 transition flex items-center justify-center gap-1">
+              <i data-lucide="alert-triangle" class="w-3 h-3"></i> ড্যামেজ
+            </button>
+          </div>
+
+          <button onclick="deleteProductConfirm('${p.id}'); closeDetail();" class="w-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-bold py-2 rounded-xl text-[10px] border border-rose-500/30 active:scale-95 transition flex items-center justify-center gap-1">
+            <i data-lucide="trash-2" class="w-3 h-3"></i> পণ্য ডিলিট
+          </button>
+        </div>
+      `;
+      document.getElementById('detailModal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      lucide.createIcons();
+    }
+
+    function closeDetail() {
+      document.getElementById('detailModal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function copyProductInfo(id) {
+      const p = db.products.find(x => x.id === id);
+      if (!p) return;
+      const text = `📦 ${p.name}\nক্যাটাগরি: ${p.category}\nস্টক: ${p.qty} পিস\nকেনা: ${fmt(p.buyPrice)}\nবিক্রি: ${fmt(p.sellPrice)}\nলাভ: ${fmt(p.sellPrice - p.buyPrice)}`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => showToast('✅ তথ্য কপি হয়েছে'));
+      }
+    }
+
+    function shareProduct(id) {
+      const p = db.products.find(x => x.id === id);
+      if (!p) return;
+      const text = `📦 ${p.name}\n${fmt(p.sellPrice)} — Talha Tech`;
+      if (navigator.share) {
+        navigator.share({ title: p.name, text }).catch(() => {});
+      } else {
+        navigator.clipboard?.writeText(text).then(() => showToast('✅ শেয়ার টেক্সট কপি হয়েছে'));
+      }
+    }
+
+    // ============================================================
+    // 🗑️ ডিলিট
+    // ============================================================
+    function deleteProductConfirm(id) {
+      const p = db.products.find(x => x.id === id);
+      if (!p) return;
+      showConfirm('ডিলিট করবেন?', `"${p.name}" স্থায়ীভাবে মুছে যাবে (স্টক: ${p.qty})।`, () => {
+        db.products = db.products.filter(x => x.id !== id);
+        db.favorites = db.favorites.filter(f => f !== id);
+        saveDB();
+        renderAll();
+        syncToSheet('deleteProduct', { productId: id });
+        showToast('✅ পণ্য ডিলিট হয়েছে');
+      });
+    }
+
+    // ============================================================
+    // 🛒 রিঅর্ডার সাজেশন
+    // ============================================================
+    function openReorderSuggestions() {
+      const low = db.products.filter(p => p.qty <= (p.reorderLevel || 5)).sort((a, b) => a.qty - b.qty);
+      const list = document.getElementById('reorderList');
+      
+      if (low.length === 0) {
+        list.innerHTML = '<p class="text-center text-slate-500 text-xs py-6">সব স্টক পর্যাপ্ত 👍</p>';
+      } else {
+        list.innerHTML = low.map(p => {
+          const suggestQty = Math.max(10, (p.reorderLevel || 5) * 2 - p.qty);
+          return `
+            <div class="bg-slate-950 border border-amber-500/30 rounded-2xl p-3">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <p class="text-xs font-black text-white">${escapeHtml(p.name)}</p>
+                  <p class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(p.category)} • বর্তমান: ${p.qty} পিস</p>
+                  <p class="text-[10px] text-amber-400 font-bold mt-1">সাজেশন: ${suggestQty} পিস কিনুন</p>
+                </div>
+                <button onclick="openRestock('${p.id}'); closeReorder();" class="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 p-2 rounded-lg border border-emerald-500/30 active:scale-95 transition">
+                  <i data-lucide="plus" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <div class="text-[10px] text-slate-500 mt-1">আনুমানিক খরচ: <span class="text-rose-400 font-bold">${fmt(suggestQty * p.buyPrice)}</span></div>
+            </div>
+          `;
+        }).join('');
+      }
+      document.getElementById('reorderModal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      lucide.createIcons();
+    }
+
+    function closeReorder() {
+      document.getElementById('reorderModal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function copyReorderList() {
+      const low = db.products.filter(p => p.qty <= (p.reorderLevel || 5));
+      if (low.length === 0) { showToast('সব স্টক ঠিক আছে', 'info'); return; }
+      let text = '🛍️ Talha Tech — কেনাকাটার তালিকা\n\n';
+      low.forEach((p, i) => {
+        const qty = Math.max(10, (p.reorderLevel || 5) * 2 - p.qty);
+        text += `${i + 1}. ${p.name} — ${qty} পিস (দর: ${fmt(p.buyPrice)})\n`;
+      });
+      navigator.clipboard?.writeText(text).then(() => showToast('✅ তালিকা কপি হয়েছে'));
+    }
+
+    // ============================================================
+    // 🚀 ইনিশিয়ালাইজ
+    // ============================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadDB();
+      renderAll();
+      setTimeout(() => fetchLiveData(false), 500);
+      lucide.createIcons();
+
+      // সার্চে ডিবাউন্স
+      const searchEl = document.getElementById('searchInput');
+      let searchTimer;
+      searchEl.addEventListener('input', (e) => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => onSearchInput(e.target.value), 80);
+      });
+    });
+
+    // বাইরে ক্লিক
+    document.addEventListener('click', (e) => {
+      // মডাল বাইরে ক্লিক
+      ['detailModal', 'editModal', 'damageModal', 'restockModal', 'reorderModal'].forEach(mid => {
+        const el = document.getElementById(mid);
+        if (el && !el.classList.contains('hidden') && e.target === el) {
+          el.classList.add('hidden');
+          document.body.style.overflow = '';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,2640 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Talha Tech - খরচ ও হিসাব</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&display=swap');
+    * { font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .animate-fade-in { animation: fadeIn 0.2s ease-out; }
+    @keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .pulse-dot { animation: pulseDot 1.5s infinite; }
+    input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+    .glass { background: rgba(15,23,42,0.85); backdrop-filter: blur(20px); }
+    @media print { body * { visibility: hidden; } #printArea, #printArea * { visibility: visible; } #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; } .no-print { display: none !important; } }
+    
+    /* বটম নেভিগেশনের জন্য বডিতে প্যাডিং */
+    body { padding-bottom: 75px; }
+  </style>
+</head>
+<body class="bg-[#070b14] text-slate-100 antialiased select-none text-sm min-h-screen">
+
+  <!-- হেডার -->
+  <header class="glass border-b border-slate-800/80 sticky top-0 z-30 shadow-lg">
+    <div class="max-w-2xl mx-auto px-4 py-3">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 via-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-rose-500/30">
+            <i data-lucide="wallet" class="w-5 h-5 text-white"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h1 class="text-base font-black tracking-wide text-white leading-tight">খরচ ও হিসাব</h1>
+              <span class="bg-rose-500/20 text-rose-300 text-[9px] font-bold px-1.5 py-0.5 rounded border border-rose-500/30">ACCOUNTS</span>
+            </div>
+            <p class="text-[10px] text-amber-400 font-semibold">Talha Tech • মানি ম্যানেজমেন্ট</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button onclick="fetchLiveData(true)" id="btnSync" class="bg-emerald-950/70 hover:bg-emerald-900/90 text-emerald-400 border border-emerald-500/40 px-2.5 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1 shadow active:scale-95 transition">
+            <span class="w-2 h-2 rounded-full bg-emerald-400" id="syncPulse"></span>
+            <span id="syncText">সিঙ্ক</span>
+          </button>
+          <button onclick="openSettings()" class="bg-slate-800/80 hover:bg-slate-700 text-slate-300 p-2 rounded-xl border border-slate-700/80 active:scale-95 transition">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto p-3.5 pb-24 space-y-3.5">
+
+    <!-- ============== ড্যাশবোর্ড ============== -->
+    <section id="tab-home" class="space-y-3">
+      <!-- টপ কার্ডস -->
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-gradient-to-br from-rose-950/60 to-slate-900 border border-rose-500/30 rounded-2xl p-3 shadow-sm">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="trending-down" class="w-3.5 h-3.5 text-rose-400"></i>
+            <span class="text-[10px] font-bold text-rose-300">আজকের খরচ</span>
+          </div>
+          <p class="text-lg font-black text-white" id="dashTodayExpense">৳০</p>
+        </div>
+        <div class="bg-gradient-to-br from-rose-950/40 to-slate-900 border border-rose-500/20 rounded-2xl p-3 shadow-sm">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-rose-300"></i>
+            <span class="text-[10px] font-bold text-rose-200">এই মাসের খরচ</span>
+          </div>
+          <p class="text-lg font-black text-white" id="dashMonthExpense">৳০</p>
+        </div>
+        <div class="bg-gradient-to-br from-amber-950/60 to-slate-900 border border-amber-500/30 rounded-2xl p-3 shadow-sm">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="users" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span class="text-[10px] font-bold text-amber-300">মোট বাকি</span>
+          </div>
+          <p class="text-lg font-black text-white" id="dashTotalReceivable">৳০</p>
+        </div>
+        <div class="bg-gradient-to-br from-purple-950/60 to-slate-900 border border-purple-500/30 rounded-2xl p-3 shadow-sm">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="factory" class="w-3.5 h-3.5 text-purple-400"></i>
+            <span class="text-[10px] font-bold text-purple-300">মোট দেনা</span>
+          </div>
+          <p class="text-lg font-black text-white" id="dashTotalPayable">৳০</p>
+        </div>
+      </div>
+
+      <!-- ক্যাশ স্ট্যাটাস -->
+      <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3 shadow-sm">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-black text-slate-300 flex items-center gap-1.5">
+            <i data-lucide="banknote" class="w-4 h-4 text-emerald-400"></i> ক্যাশ ও অ্যাকাউন্ট ব্যালেন্স
+          </span>
+          <button onclick="switchTab('cashbook')" class="text-[10px] bg-emerald-500/15 text-emerald-300 px-2 py-1 rounded-lg border border-emerald-500/30 active:scale-95 transition">বিস্তারিত</button>
+        </div>
+        <div id="dashAccountsGrid" class="grid grid-cols-2 gap-1.5"></div>
+      </div>
+
+      <!-- আজকের ইন/আউট -->
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-3">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="arrow-down-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span class="text-[10px] font-bold text-emerald-300">আজ ক্যাশ ইন</span>
+          </div>
+          <p class="text-base font-black text-emerald-400" id="dashTodayInflow">৳০</p>
+        </div>
+        <div class="bg-rose-950/40 border border-rose-500/30 rounded-2xl p-3">
+          <div class="flex items-center gap-1.5 mb-1">
+            <i data-lucide="arrow-up-circle" class="w-3.5 h-3.5 text-rose-400"></i>
+            <span class="text-[10px] font-bold text-rose-300">আজ ক্যাশ আউট</span>
+          </div>
+          <p class="text-base font-black text-rose-400" id="dashTodayOutflow">৳০</p>
+        </div>
+      </div>
+
+      <!-- ড্যামেজ + আদায় + পরিশোধ -->
+      <div class="grid grid-cols-3 gap-1.5">
+        <div class="bg-slate-900/95 border border-slate-800 rounded-2xl p-2.5 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">ড্যামেজ লস</p>
+          <p class="text-sm font-black text-rose-400 mt-0.5" id="dashDamageLoss">৳০</p>
+        </div>
+        <div class="bg-slate-900/95 border border-slate-800 rounded-2xl p-2.5 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">আজ আদায়</p>
+          <p class="text-sm font-black text-emerald-400 mt-0.5" id="dashTodayCollected">৳০</p>
+        </div>
+        <div class="bg-slate-900/95 border border-slate-800 rounded-2xl p-2.5 text-center">
+          <p class="text-[9px] text-slate-500 font-bold">আজ পরিশোধ</p>
+          <p class="text-sm font-black text-purple-400 mt-0.5" id="dashTodayPaid">৳০</p>
+        </div>
+      </div>
+
+      <!-- মেয়াদ পার -->
+      <div id="overdueAlert" class="hidden bg-gradient-to-r from-red-950/60 to-rose-950/40 border border-red-500/40 rounded-2xl p-3">
+        <div class="flex items-center gap-1.5 mb-1.5">
+          <i data-lucide="alert-octagon" class="w-4 h-4 text-red-400 animate-pulse"></i>
+          <span class="text-xs font-black text-red-300">মেয়াদ পার হয়েছে</span>
+        </div>
+        <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+          <div class="bg-slate-950/60 rounded-lg p-2">
+            <p class="text-[9px] text-red-400 font-bold">বাকি</p>
+            <p class="text-sm font-black text-white" id="overdueReceivable">৳০</p>
+          </div>
+          <div class="bg-slate-950/60 rounded-lg p-2">
+            <p class="text-[9px] text-purple-400 font-bold">দেনা</p>
+            <p class="text-sm font-black text-white" id="overduePayable">৳০</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- সাম্প্রতিক লেনদেন -->
+      <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-black text-slate-300 flex items-center gap-1.5">
+            <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i> সর্বশেষ লেনদেন
+          </span>
+          <span class="text-[10px] text-slate-500 font-bold" id="recentCount">০ টি</span>
+        </div>
+        <div id="recentTransactions" class="space-y-1.5 max-h-80 overflow-y-auto no-scrollbar"></div>
+      </div>
+    </section>
+
+    <!-- ============== খরচ + ড্যামেজ ============== -->
+    <section id="tab-expenses" class="hidden space-y-3">
+      <!-- Toggle -->
+      <div class="grid grid-cols-2 gap-1.5 bg-slate-900/95 border border-slate-800 p-1.5 rounded-2xl">
+        <button onclick="setExpenseView('expenses')" id="btnViewExp" class="py-2 rounded-xl text-xs font-black active:scale-95 transition bg-rose-600 text-white">💸 খরচ</button>
+        <button onclick="setExpenseView('damages')" id="btnViewDmg" class="py-2 rounded-xl text-xs font-black active:scale-95 transition text-slate-400">⚠️ ড্যামেজ</button>
+      </div>
+
+      <!-- খরচ সেকশন -->
+      <div id="expenseSection" class="space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-gradient-to-br from-rose-950/60 to-slate-900 border border-rose-500/30 rounded-2xl p-3">
+            <p class="text-[10px] text-rose-300 font-bold">আজকের খরচ</p>
+            <p class="text-lg font-black text-white" id="expToday">৳০</p>
+          </div>
+          <div class="bg-gradient-to-br from-rose-950/40 to-slate-900 border border-rose-500/20 rounded-2xl p-3">
+            <p class="text-[10px] text-rose-200 font-bold">মাসের খরচ</p>
+            <p class="text-lg font-black text-white" id="expMonth">৳০</p>
+          </div>
+        </div>
+
+        <button onclick="openExpenseModal()" class="w-full bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white font-black py-3 rounded-2xl text-sm flex justify-center items-center gap-2 shadow-lg shadow-rose-600/30 active:scale-95 transition">
+          <i data-lucide="plus-circle" class="w-5 h-5"></i> নতুন খরচ যোগ করুন
+        </button>
+
+        <!-- ফিল্টার -->
+        <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3 space-y-2">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="expSearch" oninput="renderExpenses()" placeholder="খরচ খুঁজুন..." class="text-xs bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-white outline-none focus:border-rose-400">
+            <select id="expCategoryFilter" onchange="renderExpenses()" class="text-xs bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white outline-none focus:border-rose-400">
+              <option value="all">সব ক্যাটাগরি</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="date" id="expDateFrom" onchange="renderExpenses()" class="text-[10px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white outline-none">
+            <input type="date" id="expDateTo" onchange="renderExpenses()" class="text-[10px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white outline-none">
+          </div>
+          <button onclick="resetExpFilters()" class="w-full text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-400 py-1.5 rounded-lg font-bold active:scale-95 transition">ফিল্টার রিসেট</button>
+        </div>
+
+        <div id="expensesList" class="space-y-2 max-h-[600px] overflow-y-auto no-scrollbar"></div>
+      </div>
+
+      <!-- ড্যামেজ সেকশন -->
+      <div id="damageSection" class="hidden space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-gradient-to-br from-rose-950/60 to-slate-900 border border-rose-500/30 rounded-2xl p-3">
+            <p class="text-[10px] text-rose-300 font-bold">মোট লস</p>
+            <p class="text-lg font-black text-white" id="dmgTotalLoss">৳০</p>
+          </div>
+          <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-3">
+            <p class="text-[10px] text-slate-400 font-bold">মোট আইটেম</p>
+            <p class="text-lg font-black text-white" id="dmgTotalCount">০</p>
+          </div>
+        </div>
+
+        <button onclick="openDamageModal()" class="w-full bg-gradient-to-r from-rose-600 to-red-500 text-white font-black py-3 rounded-2xl text-sm flex justify-center items-center gap-2 shadow-lg shadow-rose-600/30 active:scale-95 transition">
+          <i data-lucide="alert-triangle" class="w-5 h-5"></i> নতুন ড্যামেজ এন্ট্রি
+        </button>
+
+        <div id="damagesList" class="space-y-2 max-h-[600px] overflow-y-auto no-scrollbar"></div>
+      </div>
+    </section>
+
+    <!-- ============== বাকি (কাস্টমার) ============== -->
+    <section id="tab-receivables" class="hidden space-y-3">
+      <div class="grid grid-cols-3 gap-1.5">
+        <div class="bg-gradient-to-br from-amber-950/60 to-slate-900 border border-amber-500/30 rounded-2xl p-2.5 text-center">
+          <p class="text-[9px] text-amber-300 font-bold">মোট বাকি</p>
+          <p class="text-sm font-black text-white mt-0.5" id="recvTotal">৳০</p>
+        </div>
+        <div class="bg-gradient-to-br from-red-950/60 to-slate-900 border border-red-500/30 rounded-2xl p-2.5 text-center">
+          <p class="text-[9px] text-red-300 font-bold">মেয়াদ পার</p>
+          <p class="text-sm font-black text-white mt-0.5" id="recvOverdue">৳০</p>
+        </div>
+        <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-2.5 text-center">
+          <p class="text-[9px] text-slate-400 font-bold">মোট কাস্টমার</p>
+          <p class="text-sm font-black text-white mt-0.5" id="recvCount">০</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="openReceivableModal()" class="bg-gradient-to-r from-amber-600 to-orange-500 text-white font-black py-3 rounded-2xl text-xs flex justify-center items-center gap-1.5 shadow-lg active:scale-95 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i> নতুন বাকি
+        </button>
+        <button onclick="openCollectionModal()" class="bg-gradient-to-r from-emerald-600 to-green-500 text-white font-black py-3 rounded-2xl text-xs flex justify-center items-center gap-1.5 shadow-lg active:scale-95 transition">
+          <i data-lucide="hand-coins" class="w-4 h-4"></i> টাকা আদায়
+        </button>
+      </div>
+
+      <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3 space-y-2">
+        <input type="text" id="recvSearch" oninput="renderReceivables()" placeholder="নাম বা ফোন দিয়ে খুঁজুন..." class="w-full text-xs bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-white outline-none focus:border-amber-400">
+        <div class="grid grid-cols-2 gap-2">
+          <select id="recvStatusFilter" onchange="renderReceivables()" class="text-[11px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white outline-none focus:border-amber-400">
+            <option value="all">সব</option>
+            <option value="unpaid">অপরিশোধিত</option>
+            <option value="partial">আংশিক</option>
+            <option value="overdue">মেয়াদ পার</option>
+            <option value="paid">পরিশোধিত</option>
+          </select>
+          <button onclick="exportReceivablesCSV()" class="text-[11px] bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 rounded-lg font-bold active:scale-95 transition">
+            <i data-lucide="download" class="w-3 h-3 inline"></i> CSV
+          </button>
+        </div>
+      </div>
+
+      <div id="receivablesList" class="space-y-2 max-h-[600px] overflow-y-auto no-scrollbar"></div>
+    </section>
+
+    <!-- ============== দেনা (সাপ্লায়ার) ============== -->
+    <section id="tab-payables" class="hidden space-y-3">
+      <div class="grid grid-cols-3 gap-1.5">
+        <div class="bg-gradient-to-br from-purple-950/60 to-slate-900 border border-purple-500/30 rounded-2xl p-2.5 text-center">
+          <p class="text-[9px] text-purple-300 font-bold">মোট দেনা</p>
+          <p class="text-sm font-black text-white mt-0.5" id="payTotal">৳০</p>
+        </div>
+        <div class="bg-gradient-to-br from-red-950/60 to-slate-900 border border-red-500/30 rounded-2xl p-2.5 text-center">
+          <p class="text-[9px] text-red-300 font-bold">মেয়াদ পার</p>
+          <p class="text-sm font-black text-white mt-0.5" id="payOverdue">৳০</p>
+        </div>
+        <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-2.5 text-center">
+          <p class="text-[9px] text-slate-400 font-bold">মোট সাপ্লায়ার</p>
+          <p class="text-sm font-black text-white mt-0.5" id="payCount">০</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="openPayableModal()" class="bg-gradient-to-r from-purple-600 to-indigo-500 text-white font-black py-3 rounded-2xl text-xs flex justify-center items-center gap-1.5 shadow-lg active:scale-95 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i> নতুন দেনা
+        </button>
+        <button onclick="openSupplierPaymentModal()" class="bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-black py-3 rounded-2xl text-xs flex justify-center items-center gap-1.5 shadow-lg active:scale-95 transition">
+          <i data-lucide="send" class="w-4 h-4"></i> পেমেন্ট করুন
+        </button>
+      </div>
+
+      <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3 space-y-2">
+        <input type="text" id="paySearch" oninput="renderPayables()" placeholder="সাপ্লায়ার বা চালান..." class="w-full text-xs bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-white outline-none focus:border-purple-400">
+        <div class="grid grid-cols-2 gap-2">
+          <select id="payStatusFilter" onchange="renderPayables()" class="text-[11px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white outline-none focus:border-purple-400">
+            <option value="all">সব</option>
+            <option value="unpaid">অপরিশোধিত</option>
+            <option value="partial">আংশিক</option>
+            <option value="overdue">মেয়াদ পার</option>
+            <option value="paid">পরিশোধিত</option>
+          </select>
+          <button onclick="exportPayablesCSV()" class="text-[11px] bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 rounded-lg font-bold active:scale-95 transition">
+            <i data-lucide="download" class="w-3 h-3 inline"></i> CSV
+          </button>
+        </div>
+      </div>
+
+      <div id="payablesList" class="space-y-2 max-h-[600px] overflow-y-auto no-scrollbar"></div>
+    </section>
+
+    <!-- ============== ক্যাশবুক ============== -->
+    <section id="tab-cashbook" class="hidden space-y-3">
+      <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-black text-slate-300 flex items-center gap-1.5">
+            <i data-lucide="wallet" class="w-4 h-4 text-emerald-400"></i> অ্যাকাউন্ট ব্যালেন্স
+          </span>
+          <button onclick="openAccountModal()" class="text-[10px] bg-emerald-500/15 text-emerald-300 px-2 py-1 rounded-lg border border-emerald-500/30 active:scale-95 transition">
+            <i data-lucide="plus" class="w-3 h-3 inline"></i> নতুন
+          </button>
+        </div>
+        <div id="accountsGrid" class="space-y-1.5"></div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-1.5">
+        <button onclick="openTransferModal()" class="bg-slate-900/95 border border-cyan-500/30 rounded-2xl p-2.5 flex flex-col items-center gap-1 active:scale-95 transition">
+          <div class="w-8 h-8 rounded-lg bg-cyan-500/15 text-cyan-400 flex items-center justify-center">
+            <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
+          </div>
+          <span class="text-[10px] font-bold text-slate-300">ট্রান্সফার</span>
+        </button>
+        <button onclick="openCapitalModal('deposit')" class="bg-slate-900/95 border border-emerald-500/30 rounded-2xl p-2.5 flex flex-col items-center gap-1 active:scale-95 transition">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          </div>
+          <span class="text-[10px] font-bold text-slate-300">মূলধন</span>
+        </button>
+        <button onclick="openCapitalModal('withdraw')" class="bg-slate-900/95 border border-orange-500/30 rounded-2xl p-2.5 flex flex-col items-center gap-1 active:scale-95 transition">
+          <div class="w-8 h-8 rounded-lg bg-orange-500/15 text-orange-400 flex items-center justify-center">
+            <i data-lucide="minus-circle" class="w-4 h-4"></i>
+          </div>
+          <span class="text-[10px] font-bold text-slate-300">উত্তোলন</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-1.5">
+        <div class="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-2.5 text-center">
+          <p class="text-[9px] text-emerald-300 font-bold">মোট মূলধন</p>
+          <p class="text-sm font-black text-white mt-0.5" id="totalCapital">৳০</p>
+        </div>
+        <div class="bg-orange-950/40 border border-orange-500/30 rounded-2xl p-2.5 text-center">
+          <p class="text-[9px] text-orange-300 font-bold">মোট উত্তোলন</p>
+          <p class="text-sm font-black text-white mt-0.5" id="totalWithdraw">৳০</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3 space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-black text-slate-300 flex items-center gap-1.5">
+            <i data-lucide="list" class="w-4 h-4 text-cyan-400"></i> সব লেনদেন
+          </span>
+          <select id="txTypeFilter" onchange="renderCashTransactions()" class="text-[10px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-white outline-none">
+            <option value="all">সব ধরন</option>
+            <option value="inflow">ইনফ্লো</option>
+            <option value="outflow">আউটফ্লো</option>
+            <option value="transfer">ট্রান্সফার</option>
+          </select>
+        </div>
+        <div id="cashTransactionsList" class="space-y-1.5 max-h-[500px] overflow-y-auto no-scrollbar"></div>
+      </div>
+    </section>
+
+    <!-- ============== রিপোর্ট ============== -->
+    <section id="tab-reports" class="hidden space-y-3">
+      <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-black text-slate-200 flex items-center gap-1.5">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-cyan-400"></i> রিপোর্ট সময়কাল
+          </span>
+        </div>
+        <div class="grid grid-cols-4 gap-1.5 bg-slate-950 p-1.5 rounded-xl">
+          <button onclick="setReportPeriod('today')" id="repBtnToday" class="py-1.5 rounded-lg text-[10px] font-black text-slate-400 active:scale-95 transition">আজ</button>
+          <button onclick="setReportPeriod('week')" id="repBtnWeek" class="py-1.5 rounded-lg text-[10px] font-black text-slate-400 active:scale-95 transition">৭ দিন</button>
+          <button onclick="setReportPeriod('month')" id="repBtnMonth" class="py-1.5 rounded-lg text-[10px] font-black text-slate-400 active:scale-95 transition">এই মাস</button>
+          <button onclick="setReportPeriod('all')" id="repBtnAll" class="py-1.5 rounded-lg text-[10px] font-black bg-cyan-600 text-slate-950 active:scale-95 transition">সব</button>
+        </div>
+      </div>
+
+      <!-- P&L Statement -->
+      <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+        <h3 class="text-xs font-black text-slate-200 mb-2 flex items-center gap-1.5">
+          <i data-lucide="file-text" class="w-4 h-4 text-cyan-400"></i> আর্থিক স্টেটমেন্ট
+        </h3>
+        <div class="space-y-1.5 text-xs">
+          <div class="flex justify-between py-1.5 border-b border-slate-800">
+            <span class="text-slate-400">মোট বিক্রি</span>
+            <span class="font-bold text-white" id="repTotalSales">৳০</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-800">
+            <span class="text-slate-400">অপারেটিং খরচ</span>
+            <span class="font-bold text-rose-400" id="repOperatingExpenses">৳০</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-800">
+            <span class="text-slate-400">ড্যামেজ লস</span>
+            <span class="font-bold text-red-400" id="repDamageLoss">৳০</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-800">
+            <span class="text-slate-400">মোট আদায়</span>
+            <span class="font-bold text-emerald-400" id="repCollections">৳০</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-800">
+            <span class="text-slate-400">মোট সাপ্লায়ার পেমেন্ট</span>
+            <span class="font-bold text-purple-400" id="repSupplierPayments">৳০</span>
+          </div>
+          <div class="flex justify-between p-2.5 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-sm font-black text-emerald-400 mt-1">
+            <span>নিট ক্যাশ ফ্লো</span>
+            <span id="repNetCash">৳০</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- চার্ট ১: খরচ ক্যাটাগরি -->
+      <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+        <h3 class="text-xs font-black text-slate-200 mb-2 flex items-center gap-1.5">
+          <i data-lucide="pie-chart" class="w-4 h-4 text-rose-400"></i> ক্যাটাগরি অনুযায়ী খরচ
+        </h3>
+        <div class="w-full h-56"><canvas id="chartExpenseCategory"></canvas></div>
+      </div>
+
+      <!-- চার্ট ২: দৈনিক লেনদেন -->
+      <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+        <h3 class="text-xs font-black text-slate-200 mb-2 flex items-center gap-1.5">
+          <i data-lucide="line-chart" class="w-4 h-4 text-cyan-400"></i> দৈনিক খরচ ও আয়
+        </h3>
+        <div class="w-full h-56"><canvas id="chartDailyTrend"></canvas></div>
+      </div>
+
+      <!-- চার্ট ৩: ক্যাশ ফ্লো -->
+      <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
+        <h3 class="text-xs font-black text-slate-200 mb-2 flex items-center gap-1.5">
+          <i data-lucide="bar-chart-2" class="w-4 h-4 text-purple-400"></i> ক্যাশ ইনফ্লো vs আউটফ্লো
+        </h3>
+        <div class="w-full h-48"><canvas id="chartCashFlow"></canvas></div>
+      </div>
+
+      <!-- এক্সপোর্ট -->
+      <div class="grid grid-cols-3 gap-1.5">
+        <button onclick="exportFullReportCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2.5 rounded-xl text-[10px] flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="download" class="w-4 h-4"></i> CSV
+        </button>
+        <button onclick="downloadReportPDF()" class="bg-rose-600 hover:bg-rose-500 text-white font-black py-2.5 rounded-xl text-[10px] flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="file-text" class="w-4 h-4"></i> PDF
+        </button>
+        <button onclick="printReport()" class="bg-slate-700 hover:bg-slate-600 text-white font-black py-2.5 rounded-xl text-[10px] flex flex-col items-center gap-1 active:scale-95 transition">
+          <i data-lucide="printer" class="w-4 h-4"></i> প্রিন্ট
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= ইউনিভার্সাল বটম নেভিগেশন বার ================= -->
+  <nav class="fixed bottom-0 left-0 right-0 glass border-t border-slate-800 z-50">
+    <div class="max-w-3xl mx-auto grid grid-cols-7 text-center py-2 px-1">
+      <a href="index.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">হোম</span>
+      </a>
+      <a href="pos.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">বিক্রি</span>
+      </a>
+      <a href="inventory.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="package-plus" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">মাল এন্ট্রি</span>
+      </a>
+      <a href="products.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="boxes" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">পণ্য</span>
+      </a>
+      <!-- এই পেজটি একটিভ -->
+      <a href="expenses.html" class="flex flex-col items-center gap-0.5 text-cyan-400 transition active:scale-95">
+        <i data-lucide="receipt" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">খরচ/হিসাব</span>
+      </a>
+      <a href="history.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="history" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">হিস্ট্রি</span>
+      </a>
+      <a href="reports.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
+        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">রিপোর্ট</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ============== মডাল: খরচ ============== -->
+  <div id="expenseModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="receipt" class="w-4 h-4 text-rose-400"></i> <span id="expModalTitle">নতুন খরচ</span>
+        </h3>
+        <button onclick="closeModal('expenseModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <input type="hidden" id="expId">
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">খরচের নাম *</label>
+          <input type="text" id="expName" placeholder="যেমন: সকালের নাস্তা" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-rose-400 font-medium">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">ক্যাটাগরি *</label>
+          <div class="flex gap-1.5">
+            <select id="expCategory" class="flex-1 text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-rose-400"></select>
+            <button type="button" onclick="addNewCategory()" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black px-2.5 rounded-xl text-xs active:scale-95 transition">+</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">পরিমাণ (৳) *</label>
+            <input type="number" id="expAmount" placeholder="০" class="w-full text-sm bg-slate-950 border-2 border-slate-800 rounded-xl px-3 py-2.5 text-rose-400 outline-none focus:border-rose-400 font-black text-center">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">তারিখ *</label>
+            <input type="date" id="expDate" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-rose-400">
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">যে অ্যাকাউন্ট থেকে দেওয়া হয়েছে</label>
+          <select id="expAccount" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-rose-400"></select>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">ধরন</label>
+          <div class="grid grid-cols-2 gap-1.5">
+            <button type="button" onclick="setExpType('business')" id="expTypeBusiness" class="py-2 rounded-lg text-xs font-black bg-rose-600 text-white active:scale-95 transition">ব্যবসায়িক</button>
+            <button type="button" onclick="setExpType('personal')" id="expTypePersonal" class="py-2 rounded-lg text-xs font-black bg-slate-800 text-slate-400 active:scale-95 transition">ব্যক্তিগত</button>
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">বিবরণ</label>
+          <input type="text" id="expNote" placeholder="ঐচ্ছিক" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-rose-400">
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="closeModal('expenseModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition">বাতিল</button>
+          <button onclick="saveExpense()" class="bg-rose-600 hover:bg-rose-500 text-white font-black py-2.5 rounded-xl text-xs flex justify-center items-center gap-1 active:scale-95 transition">
+            <i data-lucide="check" class="w-4 h-4"></i> সেভ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== মডাল: বাকি ============== -->
+  <div id="receivableModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="user-plus" class="w-4 h-4 text-amber-400"></i> <span id="recvModalTitle">নতুন বাকি</span>
+        </h3>
+        <button onclick="closeModal('receivableModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <input type="hidden" id="recvId">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">কাস্টমারের নাম *</label>
+            <input type="text" id="recvName" placeholder="নাম" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-amber-400 font-medium">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">ফোন</label>
+            <input type="tel" id="recvPhone" placeholder="01XXXXXXXXX" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-amber-400 font-medium">
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">মোট বাকি (৳) *</label>
+          <input type="number" id="recvAmount" placeholder="০" class="w-full text-lg bg-slate-950 border-2 border-slate-800 rounded-xl px-3 py-2.5 text-amber-400 outline-none focus:border-amber-400 font-black text-center">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">বাকির তারিখ</label>
+            <input type="date" id="recvDate" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-amber-400">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">পরিশোধের তারিখ</label>
+            <input type="date" id="recvDueDate" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-amber-400">
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">মেমো নম্বর (ঐচ্ছিক)</label>
+          <input type="text" id="recvInvoice" placeholder="TT-XXXX" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-amber-400">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">নোট</label>
+          <input type="text" id="recvNote" placeholder="যেমন: বাকিতে ফোন কেসিং নিয়েছে" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-amber-400">
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="closeModal('receivableModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition">বাতিল</button>
+          <button onclick="saveReceivable()" class="bg-amber-600 hover:bg-amber-500 text-white font-black py-2.5 rounded-xl text-xs flex justify-center items-center gap-1 active:scale-95 transition">
+            <i data-lucide="check" class="w-4 h-4"></i> সেভ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== মডাল: আদায় ============== -->
+  <div id="collectionModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-emerald-500/40 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-emerald-500/30 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="hand-coins" class="w-4 h-4 text-emerald-400"></i> টাকা আদায়
+        </h3>
+        <button onclick="closeModal('collectionModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">কাস্টমার বাছুন *</label>
+          <select id="colReceivableId" onchange="updateCollectionInfo()" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-emerald-400"></select>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-1">
+          <div class="flex justify-between text-xs">
+            <span class="text-slate-400">মোট বাকি:</span>
+            <span class="font-bold text-amber-400" id="colTotalDue">৳০</span>
+          </div>
+          <div class="flex justify-between text-xs">
+            <span class="text-slate-400">ইতিমধ্যে পরিশোধ:</span>
+            <span class="font-bold text-emerald-400" id="colPaid">৳০</span>
+          </div>
+          <div class="flex justify-between text-xs border-t border-slate-800 pt-1">
+            <span class="text-slate-400">অবশিষ্ট:</span>
+            <span class="font-bold text-rose-400" id="colRemaining">৳০</span>
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">আদায়ের পরিমাণ (৳) *</label>
+          <input type="number" id="colAmount" placeholder="০" class="w-full text-lg bg-slate-950 border-2 border-slate-800 rounded-xl px-3 py-2.5 text-emerald-400 outline-none focus:border-emerald-400 font-black text-center">
+          <div class="flex gap-1.5 mt-1.5">
+            <button onclick="setColAmount(0.5)" class="flex-1 bg-slate-800 text-slate-300 text-[10px] font-bold py-1.5 rounded-lg active:scale-95 transition">৫০%</button>
+            <button onclick="setColAmount(1)" class="flex-1 bg-emerald-600 text-white text-[10px] font-bold py-1.5 rounded-lg active:scale-95 transition">পুরো</button>
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">অ্যাকাউন্ট</label>
+          <select id="colAccount" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-emerald-400"></select>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">নোট</label>
+          <input type="text" id="colNote" placeholder="ঐচ্ছিক" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-emerald-400">
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="closeModal('collectionModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition">বাতিল</button>
+          <button onclick="saveCollection()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2.5 rounded-xl text-xs flex justify-center items-center gap-1 active:scale-95 transition">
+            <i data-lucide="check" class="w-4 h-4"></i> আদায় করুন
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== মডাল: দেনা ============== -->
+  <div id="payableModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="factory" class="w-4 h-4 text-purple-400"></i> <span id="payModalTitle">নতুন দেনা</span>
+        </h3>
+        <button onclick="closeModal('payableModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <input type="hidden" id="payId">
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">সাপ্লায়ার/পাইকারের নাম *</label>
+          <input type="text" id="paySupplier" placeholder="নাম" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-purple-400 font-medium">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">ফোন</label>
+            <input type="tel" id="payPhone" placeholder="01XXXXXXXXX" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-purple-400 font-medium">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">চালান নম্বর</label>
+            <input type="text" id="payInvoice" placeholder="INV-XXX" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-purple-400">
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">মোট দেনা (৳) *</label>
+          <input type="number" id="payAmount" placeholder="০" class="w-full text-lg bg-slate-950 border-2 border-slate-800 rounded-xl px-3 py-2.5 text-purple-400 outline-none focus:border-purple-400 font-black text-center">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">কেনার তারিখ</label>
+            <input type="date" id="payDate" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-purple-400">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">পরিশোধের তারিখ</label>
+            <input type="date" id="payDueDate" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-purple-400">
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">বিবরণ</label>
+          <input type="text" id="payNote" placeholder="যেমন: ৫০টি কেবল বাকিতে" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-purple-400">
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="closeModal('payableModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition">বাতিল</button>
+          <button onclick="savePayable()" class="bg-purple-600 hover:bg-purple-500 text-white font-black py-2.5 rounded-xl text-xs flex justify-center items-center gap-1 active:scale-95 transition">
+            <i data-lucide="check" class="w-4 h-4"></i> সেভ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== মডাল: সাপ্লায়ার পেমেন্ট ============== -->
+  <div id="supplierPaymentModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-emerald-500/40 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-emerald-500/30 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="send" class="w-4 h-4 text-emerald-400"></i> সাপ্লায়ারকে পেমেন্ট
+        </h3>
+        <button onclick="closeModal('supplierPaymentModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">সাপ্লায়ার বাছুন *</label>
+          <select id="spPayableId" onchange="updateSupplierPaymentInfo()" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-emerald-400"></select>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-1">
+          <div class="flex justify-between text-xs">
+            <span class="text-slate-400">মোট দেনা:</span>
+            <span class="font-bold text-purple-400" id="spTotalDue">৳০</span>
+          </div>
+          <div class="flex justify-between text-xs">
+            <span class="text-slate-400">ইতিমধ্যে পরিশোধ:</span>
+            <span class="font-bold text-emerald-400" id="spPaid">৳০</span>
+          </div>
+          <div class="flex justify-between text-xs border-t border-slate-800 pt-1">
+            <span class="text-slate-400">অবশিষ্ট:</span>
+            <span class="font-bold text-rose-400" id="spRemaining">৳০</span>
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">পেমেন্টের পরিমাণ (৳) *</label>
+          <input type="number" id="spAmount" placeholder="০" class="w-full text-lg bg-slate-950 border-2 border-slate-800 rounded-xl px-3 py-2.5 text-emerald-400 outline-none focus:border-emerald-400 font-black text-center">
+          <div class="flex gap-1.5 mt-1.5">
+            <button onclick="setSpAmount(0.5)" class="flex-1 bg-slate-800 text-slate-300 text-[10px] font-bold py-1.5 rounded-lg active:scale-95 transition">৫০%</button>
+            <button onclick="setSpAmount(1)" class="flex-1 bg-emerald-600 text-white text-[10px] font-bold py-1.5 rounded-lg active:scale-95 transition">পুরো</button>
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">অ্যাকাউন্ট</label>
+          <select id="spAccount" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-emerald-400"></select>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">নোট</label>
+          <input type="text" id="spNote" placeholder="ঐচ্ছিক" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-emerald-400">
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="closeModal('supplierPaymentModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition">বাতিল</button>
+          <button onclick="saveSupplierPayment()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2.5 rounded-xl text-xs flex justify-center items-center gap-1 active:scale-95 transition">
+            <i data-lucide="check" class="w-4 h-4"></i> পেমেন্ট করুন
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== মডাল: ড্যামেজ ============== -->
+  <div id="damageModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-rose-500/40 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-rose-500/30 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i> ড্যামেজ এন্ট্রি
+        </h3>
+        <button onclick="closeModal('damageModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <input type="hidden" id="dmgId">
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">পণ্য বাছুন *</label>
+          <select id="dmgProduct" onchange="updateDamageInfo()" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-rose-400"></select>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-1 text-xs">
+          <div class="flex justify-between"><span class="text-slate-400">বর্তমান স্টক:</span><span class="font-bold text-cyan-400" id="dmgStock">০</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">কেনা দর:</span><span class="font-bold text-amber-400" id="dmgBuy">৳০</span></div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">পরিমাণ *</label>
+            <input type="number" id="dmgQty" min="1" value="1" oninput="updateDamagePreview()" class="w-full text-sm bg-slate-950 border-2 border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-rose-400 font-black text-center">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 mb-1 block">তারিখ</label>
+            <input type="date" id="dmgDate" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-rose-400">
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">কারণ *</label>
+          <select id="dmgReason" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-rose-400">
+            <option>পণ্য নষ্ট</option>
+            <option>ভাঙা</option>
+            <option>শর্ট সার্কিটে ক্ষতিগ্রস্ত</option>
+            <option>পানিতে নষ্ট</option>
+            <option>হারিয়ে যাওয়া</option>
+            <option>কাস্টমার রিটার্নে ত্রুটি</option>
+            <option>অন্যান্য</option>
+          </select>
+        </div>
+        <div class="bg-rose-950/40 border border-rose-500/40 rounded-xl p-2.5 flex justify-between items-center">
+          <span class="text-xs font-bold text-rose-300">মোট লস:</span>
+          <span class="text-lg font-black text-rose-300" id="dmgPreview">৳০</span>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">নোট</label>
+          <input type="text" id="dmgNote" placeholder="ঐচ্ছিক" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-rose-400">
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="closeModal('damageModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition">বাতিল</button>
+          <button onclick="saveDamageEntry()" class="bg-rose-600 hover:bg-rose-500 text-white font-black py-2.5 rounded-xl text-xs flex justify-center items-center gap-1 active:scale-95 transition">
+            <i data-lucide="check" class="w-4 h-4"></i> সেভ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== মডাল: ট্রান্সফার ============== -->
+  <div id="transferModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-cyan-500/40 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-cyan-500/30 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="arrow-left-right" class="w-4 h-4 text-cyan-400"></i> অ্যাকাউন্ট ট্রান্সফার
+        </h3>
+        <button onclick="closeModal('transferModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">থেকে *</label>
+          <select id="tfFrom" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-cyan-400"></select>
+        </div>
+        <div class="text-center">
+          <i data-lucide="arrow-down" class="w-5 h-5 text-cyan-400 inline"></i>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">প্রতি *</label>
+          <select id="tfTo" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-cyan-400"></select>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">পরিমাণ (৳) *</label>
+          <input type="number" id="tfAmount" placeholder="০" class="w-full text-lg bg-slate-950 border-2 border-slate-800 rounded-xl px-3 py-2.5 text-cyan-400 outline-none focus:border-cyan-400 font-black text-center">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">নোট</label>
+          <input type="text" id="tfNote" placeholder="ঐচ্ছিক" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-cyan-400">
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="closeModal('transferModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition">বাতিল</button>
+          <button onclick="saveTransfer()" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black py-2.5 rounded-xl text-xs flex justify-center items-center gap-1 active:scale-95 transition">
+            <i data-lucide="check" class="w-4 h-4"></i> ট্রান্সফার
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== মডাল: মূলধন / উত্তোলন ============== -->
+  <div id="capitalModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-emerald-500/40 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-emerald-500/30 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="wallet" class="w-4 h-4 text-emerald-400"></i> <span id="capTitle">মূলধন যোগ</span>
+        </h3>
+        <button onclick="closeModal('capitalModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <input type="hidden" id="capType">
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">অ্যাকাউন্ট *</label>
+          <select id="capAccount" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-white outline-none focus:border-emerald-400"></select>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">পরিমাণ (৳) *</label>
+          <input type="number" id="capAmount" placeholder="০" class="w-full text-lg bg-slate-950 border-2 border-slate-800 rounded-xl px-3 py-2.5 text-emerald-400 outline-none focus:border-emerald-400 font-black text-center">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">বিবরণ</label>
+          <input type="text" id="capNote" placeholder="যেমন: ব্যক্তিগত সঞ্চয় থেকে" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-emerald-400">
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="closeModal('capitalModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition">বাতিল</button>
+          <button onclick="saveCapitalTransaction()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2.5 rounded-xl text-xs flex justify-center items-center gap-1 active:scale-95 transition">
+            <i data-lucide="check" class="w-4 h-4"></i> সেভ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== মডাল: নতুন অ্যাকাউন্ট ============== -->
+  <div id="accountModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-cyan-400"></i> নতুন অ্যাকাউন্ট
+        </h3>
+        <button onclick="closeModal('accountModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">অ্যাকাউন্টের নাম *</label>
+          <input type="text" id="accName" placeholder="যেমন: ইসলামী ব্যাংক" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-cyan-400 font-medium">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">শুরুর ব্যালেন্স (৳)</label>
+          <input type="number" id="accStart" placeholder="০" class="w-full text-sm bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-emerald-400 outline-none focus:border-cyan-400 font-black text-center">
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">আইকন</label>
+          <input type="text" id="accIcon" placeholder="🏦" maxlength="2" value="🏦" class="w-full text-center text-2xl bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="closeModal('accountModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition">বাতিল</button>
+          <button onclick="saveAccount()" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black py-2.5 rounded-xl text-xs flex justify-center items-center gap-1 active:scale-95 transition">
+            <i data-lucide="check" class="w-4 h-4"></i> তৈরি করুন
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== মডাল: সেটিংস ============== -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i> সেটিংস
+        </h3>
+        <button onclick="closeModal('settingsModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex justify-between items-center">
+          <div>
+            <p class="text-xs font-bold text-white">বাংলা সংখ্যা</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">০১২৩৪৫৬৭৮৯ ফরম্যাটে দেখাবে</p>
+          </div>
+          <button onclick="toggleBengaliNumbers()" id="btnBnNum" class="w-12 h-6 rounded-full bg-slate-700 relative active:scale-95 transition">
+            <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform"></span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="backupData()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1 active:scale-95 transition">
+            <i data-lucide="download" class="w-4 h-4"></i> ব্যাকআপ
+          </button>
+          <button onclick="document.getElementById('restoreFile').click()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1 active:scale-95 transition">
+            <i data-lucide="upload" class="w-4 h-4"></i> রিস্টোর
+          </button>
+          <input type="file" id="restoreFile" accept=".json" class="hidden" onchange="restoreData(event)">
+        </div>
+
+        <button onclick="showAuditLog()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1 active:scale-95 transition">
+          <i data-lucide="activity" class="w-4 h-4"></i> অডিট লগ দেখুন
+        </button>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-[10px] text-slate-500 text-center">
+          <p>Talha Tech — খরচ ও হিসাব</p>
+          <p class="mt-1">সংস্করণ ১.০ • localStorage-এ সংরক্ষিত</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== মডাল: অডিট লগ ============== -->
+  <div id="auditModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i> অডিট লগ
+        </h3>
+        <button onclick="closeModal('auditModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div id="auditList" class="p-4 space-y-2 max-h-[70vh] overflow-y-auto no-scrollbar"></div>
+    </div>
+  </div>
+
+  <!-- ============== মডাল: রশিদ ============== -->
+  <div id="receiptModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="no-print p-3 border-b border-slate-800 flex flex-wrap gap-1.5 justify-between items-center">
+        <span class="text-xs font-black text-white">রশিদ</span>
+        <div class="flex gap-1.5">
+          <button onclick="downloadReceipt()" class="bg-cyan-600 text-slate-950 px-2.5 py-1.5 rounded-lg text-[10px] font-black active:scale-95 transition">
+            <i data-lucide="file-text" class="w-3 h-3 inline"></i> PDF
+          </button>
+          <button onclick="printReceipt()" class="bg-slate-700 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-black active:scale-95 transition">
+            <i data-lucide="printer" class="w-3 h-3 inline"></i> প্রিন্ট
+          </button>
+          <button onclick="closeModal('receiptModal')" class="bg-rose-500/20 text-rose-300 p-1.5 rounded-lg active:scale-95">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+      <div class="p-3 bg-slate-950">
+        <div id="receiptContent" class="mx-auto bg-white text-slate-900 rounded-lg" style="max-width: 400px; padding: 20px; font-family: 'Hind Siliguri', sans-serif;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== কনফার্ম মডাল ============== -->
+  <div id="confirmModal" class="hidden fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm p-3 flex items-center justify-center">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-4 shadow-2xl space-y-3 animate-slide-up">
+      <div class="text-center">
+        <div class="w-14 h-14 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center mx-auto mb-2">
+          <i data-lucide="alert-triangle" class="w-7 h-7 text-rose-400"></i>
+        </div>
+        <h3 class="text-sm font-black text-white" id="confirmTitle">নিশ্চিত করুন</h3>
+        <p class="text-[11px] text-slate-400 mt-1" id="confirmText">আপনি কি নিশ্চিত?</p>
+      </div>
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button onclick="closeConfirm()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-2xl text-xs active:scale-95 transition">বাতিল</button>
+        <button onclick="runConfirm()" class="bg-rose-600 hover:bg-rose-500 text-white font-black py-2.5 rounded-2xl text-xs active:scale-95 transition">হ্যাঁ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- টোস্ট -->
+  <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 opacity-0 pointer-events-none">
+    <i data-lucide="check-circle-2" class="w-4 h-4" id="toastIcon"></i>
+    <span id="toastMsg">সফল!</span>
+  </div>
+
+  <script>
+    // ============================================================
+    // কনফিগ
+    // ============================================================
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyqJOsL_DK29otfshT_RBZjbgj0_OCxCsKt1I9rKtZauz64o3YEB2boYhzs7WxNX30m/exec";
+    const KEYS = {
+      products: 'tt_master_products',
+      categories: 'tt_master_categories',
+      sales: 'tt_master_sales',
+      dues: 'tt_master_dues',
+      expenses: 'tt_master_expenses',
+      damages: 'tt_master_damages',
+      expCategories: 'tt_expense_categories',
+      payables: 'tt_supplier_payables',
+      accounts: 'tt_cash_accounts',
+      cashTx: 'tt_cash_transactions',
+      capital: 'tt_capital_transactions',
+      audit: 'tt_audit_logs',
+      settings: 'tt_app_settings'
+    };
+
+    const DEFAULT_EXP_CATS = ['যাতায়াত ও পরিবহন','খাবার ও পানি','দোকান ভাড়া','মাল পরিবহন','মোবাইল রিচার্জ ও ইন্টারনেট','প্যাকেট ও ব্যাগ','দোকান সাজানো','মেরামত ও সরঞ্জাম','কর্মচারীর খরচ','ব্যাংক বা পেমেন্ট চার্জ','অন্যান্য ব্যবসায়িক খরচ','ব্যক্তিগত উত্তোলন','মাল নষ্ট/ড্যামেজ'];
+    const DEFAULT_ACCOUNTS = [
+      { id:'cash', name:'নগদ ক্যাশ', icon:'💵', startingBalance:0 },
+      { id:'bkash', name:'বিকাশ', icon:'📱', startingBalance:0 },
+      { id:'nagad', name:'নগদ (Nagad)', icon:'📲', startingBalance:0 },
+      { id:'rocket', name:'রকেট', icon:'🚀', startingBalance:0 },
+      { id:'bank', name:'ব্যাংক', icon:'🏦', startingBalance:0 }
+    ];
+
+    // ============================================================
+    // স্টেট ও ডাটা
+    // ============================================================
+    let db = { products:[], categories:[], sales:[], dues:[], expenses:[], damages:[], expCategories:[], payables:[], accounts:[], cashTx:[], capital:[], audit:[], settings:{} };
+    let state = { currentTab:'home', expenseView:'expenses', reportPeriod:'all', expType:'business' };
+    let confirmCallback = null;
+    let charts = {};
+
+    // ============================================================
+    // ইউটিলিটি
+    // ============================================================
+    const BN_DIGITS = '০১২৩৪৫৬৭৮৯';
+    function toBn(s) {
+      if (!db.settings.bengaliNumbers) return String(s);
+      return String(s).replace(/[0-9]/g, d => BN_DIGITS[d]);
+    }
+    function fmtNum(n) {
+      const num = Math.round(Number(n) || 0);
+      const s = num.toLocaleString('en-IN');
+      return toBn(s);
+    }
+    function fmt(n) { return '৳' + fmtNum(n); }
+    function todayStr() { return new Date().toISOString().split('T')[0]; }
+    function nowTime() { return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }
+    function escapeHtml(s) { return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    function uid(prefix='id') { return prefix+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,7); }
+
+    // ============================================================
+    // স্টোরেজ লোড/সেভ
+    // ============================================================
+    function loadDB() {
+      try {
+        db.products = JSON.parse(localStorage.getItem(KEYS.products)||'[]');
+        db.categories = JSON.parse(localStorage.getItem(KEYS.categories)||'[]');
+        db.sales = JSON.parse(localStorage.getItem(KEYS.sales)||'[]');
+        db.dues = JSON.parse(localStorage.getItem(KEYS.dues)||'[]');
+        db.expenses = JSON.parse(localStorage.getItem(KEYS.expenses)||'[]');
+        db.damages = JSON.parse(localStorage.getItem(KEYS.damages)||'[]');
+        db.payables = JSON.parse(localStorage.getItem(KEYS.payables)||'[]');
+        db.cashTx = JSON.parse(localStorage.getItem(KEYS.cashTx)||'[]');
+        db.capital = JSON.parse(localStorage.getItem(KEYS.capital)||'[]');
+        db.audit = JSON.parse(localStorage.getItem(KEYS.audit)||'[]');
+        db.settings = JSON.parse(localStorage.getItem(KEYS.settings)||'{}');
+        db.expCategories = JSON.parse(localStorage.getItem(KEYS.expCategories)||'[]');
+        db.accounts = JSON.parse(localStorage.getItem(KEYS.accounts)||'[]');
+
+        if (!db.expCategories.length) db.expCategories = [...DEFAULT_EXP_CATS];
+        if (!db.accounts.length) db.accounts = [...DEFAULT_ACCOUNTS];
+        if (db.settings.bengaliNumbers === undefined) db.settings.bengaliNumbers = false;
+
+        // পুরনো dues-এ নতুন ফিল্ড
+        db.dues = db.dues.map(d => ({
+          ...d,
+          paidAmount: d.paidAmount !== undefined ? d.paidAmount : (d.isPaid ? (d.amount||0) : 0),
+          payments: d.payments || [],
+          dueDate: d.dueDate || '',
+          createdAt: d.createdAt || d.date || todayStr(),
+          isCancelled: d.isCancelled || false
+        }));
+
+        // পুরনো expenses-এ অ্যাকাউন্ট
+        db.expenses = db.expenses.map(e => ({
+          ...e,
+          cashAccount: e.cashAccount || 'cash',
+          type: e.type || 'business',
+          isCancelled: e.isCancelled || false,
+          name: e.name || e.category || 'খরচ',
+          createdAt: e.createdAt || e.date || todayStr()
+        }));
+
+        // পুরনো damages
+        db.damages = db.damages.map(d => ({
+          ...d,
+          cashAccount: d.cashAccount || 'cash',
+          isCancelled: d.isCancelled || false,
+          notes: d.notes || d.reason || '',
+          createdAt: d.createdAt || d.date || todayStr()
+        }));
+
+        // payables নতুন ফিল্ড
+        db.payables = db.payables.map(p => ({
+          ...p,
+          paidAmount: p.paidAmount || 0,
+          payments: p.payments || [],
+          isCancelled: p.isCancelled || false,
+          createdAt: p.createdAt || p.date || todayStr()
+        }));
+      } catch (e) { console.warn('লোড এরর:', e); }
+    }
+
+    function saveDB() {
+      try {
+        localStorage.setItem(KEYS.expenses, JSON.stringify(db.expenses));
+        localStorage.setItem(KEYS.damages, JSON.stringify(db.damages));
+        localStorage.setItem(KEYS.dues, JSON.stringify(db.dues));
+        localStorage.setItem(KEYS.payables, JSON.stringify(db.payables));
+        localStorage.setItem(KEYS.cashTx, JSON.stringify(db.cashTx));
+        localStorage.setItem(KEYS.capital, JSON.stringify(db.capital));
+        localStorage.setItem(KEYS.audit, JSON.stringify(db.audit.slice(-500)));
+        localStorage.setItem(KEYS.expCategories, JSON.stringify(db.expCategories));
+        localStorage.setItem(KEYS.accounts, JSON.stringify(db.accounts));
+        localStorage.setItem(KEYS.settings, JSON.stringify(db.settings));
+      } catch (e) { console.warn('সেভ এরর:', e); }
+    }
+
+    // ============================================================
+    // টোস্ট
+    // ============================================================
+    function toast(msg, type='success') {
+      const t = document.getElementById('toast'), m = document.getElementById('toastMsg'), i = document.getElementById('toastIcon');
+      m.innerText = msg;
+      if (type==='success') { t.className='fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950'; i.setAttribute('data-lucide','check-circle-2'); }
+      else if (type==='error') { t.className='fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-rose-500 to-red-600 text-white'; i.setAttribute('data-lucide','alert-circle'); }
+      else { t.className='fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950'; i.setAttribute('data-lucide','info'); }
+      lucide.createIcons();
+      t.classList.remove('opacity-0','pointer-events-none');
+      clearTimeout(window._tt); window._tt = setTimeout(() => t.classList.add('opacity-0','pointer-events-none'), 2500);
+    }
+
+    // ============================================================
+    // কনফার্ম
+    // ============================================================
+    function confirm(title, text, cb) {
+      document.getElementById('confirmTitle').innerText = title;
+      document.getElementById('confirmText').innerText = text;
+      confirmCallback = cb;
+      document.getElementById('confirmModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+    function closeConfirm() { document.getElementById('confirmModal').classList.add('hidden'); confirmCallback = null; }
+    function runConfirm() { if (confirmCallback) confirmCallback(); closeConfirm(); }
+
+    // ============================================================
+    // অডিট লগ
+    // ============================================================
+    function logAudit(action, details) {
+      db.audit.push({ id: uid('log'), action, details, date: todayStr(), time: nowTime(), timestamp: Date.now() });
+    }
+
+    // ============================================================
+    // মডাল হেল্পার
+    // ============================================================
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.body.style.overflow='hidden'; lucide.createIcons(); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.body.style.overflow=''; }
+
+    // ============================================================
+    // ট্যাব
+    // ============================================================
+    function switchTab(tab) {
+      ['home','expenses','receivables','payables','cashbook','reports'].forEach(t => {
+        const s = document.getElementById('tab-'+t);
+        if (s) s.classList.toggle('hidden', t !== tab);
+        const n = document.getElementById('nav-'+t);
+        if (n) n.className = t === tab ? 'flex flex-col items-center gap-0.5 py-1 active:scale-95 transition text-cyan-400' : 'flex flex-col items-center gap-0.5 py-1 active:scale-95 transition text-slate-400';
+      });
+      state.currentTab = tab;
+      window.scrollTo(0,0);
+      if (tab==='home') renderDashboard();
+      if (tab==='expenses') { renderExpenses(); renderDamages(); updateExpenseStats(); }
+      if (tab==='receivables') renderReceivables();
+      if (tab==='payables') renderPayables();
+      if (tab==='cashbook') renderCashbook();
+      if (tab==='reports') renderReports();
+      lucide.createIcons();
+    }
+
+    function setExpenseView(view) {
+      state.expenseView = view;
+      document.getElementById('expenseSection').classList.toggle('hidden', view !== 'expenses');
+      document.getElementById('damageSection').classList.toggle('hidden', view !== 'damages');
+      document.getElementById('btnViewExp').className = view === 'expenses' ? 'py-2 rounded-xl text-xs font-black active:scale-95 transition bg-rose-600 text-white' : 'py-2 rounded-xl text-xs font-black active:scale-95 transition text-slate-400';
+      document.getElementById('btnViewDmg').className = view === 'damages' ? 'py-2 rounded-xl text-xs font-black active:scale-95 transition bg-rose-600 text-white' : 'py-2 rounded-xl text-xs font-black active:scale-95 transition text-slate-400';
+      if (view === 'damages') renderDamages();
+    }
+
+    // ============================================================
+    // ড্যাশবোর্ড
+    // ============================================================
+    function renderDashboard() {
+      const today = todayStr();
+      const monthStart = new Date().toISOString().slice(0,7) + '-01';
+
+      const todayExp = db.expenses.filter(e => !e.isCancelled && e.date === today && e.type === 'business').reduce((s,e)=>s+(e.amount||0),0);
+      const monthExp = db.expenses.filter(e => !e.isCancelled && e.date >= monthStart && e.type === 'business').reduce((s,e)=>s+(e.amount||0),0);
+
+      let totalRec = 0, overdueRec = 0;
+      db.dues.filter(d => !d.isCancelled).forEach(d => {
+        const paid = d.paidAmount || 0;
+        const due = (d.amount||0) - paid;
+        if (due > 0) { totalRec += due; if (d.dueDate && d.dueDate < today) overdueRec += due; }
+      });
+
+      let totalPay = 0, overduePay = 0;
+      db.payables.filter(p => !p.isCancelled).forEach(p => {
+        const due = (p.amount||0) - (p.paidAmount||0);
+        if (due > 0) { totalPay += due; if (p.dueDate && p.dueDate < today) overduePay += due; }
+      });
+
+      const totalDamage = db.damages.filter(d => !d.isCancelled).reduce((s,d)=>s+(d.lossAmount||0),0);
+
+      let todayCollected = 0;
+      db.dues.forEach(d => {
+        if (d.payments) d.payments.forEach(p => { if (p.date === today) todayCollected += (p.amount||0); });
+      });
+      let todayPaid = 0;
+      db.payables.forEach(p => {
+        if (p.payments) p.payments.forEach(pay => { if (pay.date === today) todayPaid += (pay.amount||0); });
+      });
+
+      // ক্যাশ ইনফ্লো/আউটফ্লো আজ
+      let todayIn = 0, todayOut = 0;
+      db.sales.filter(s => s.date === today && !s.isCancelled).forEach(s => {
+        if (s.paymentMethod && s.paymentMethod !== 'Due') todayIn += (s.totalAmount||0);
+      });
+      todayIn += todayCollected;
+      db.expenses.filter(e => e.date === today && !e.isCancelled).forEach(e => {
+        todayOut += (e.amount||0);
+      });
+      db.damages.filter(d => d.date === today && !d.isCancelled).forEach(d => {
+        // ড্যামেজ লস স্টক লস, ক্যাশ নয় — ক্যাশে গণনা হবে না (এটা খরচের মধ্যে আছে)
+      });
+      todayOut += todayPaid;
+      db.capital.filter(c => c.date === today && !c.isCancelled && c.type === 'deposit').forEach(c => todayIn += (c.amount||0));
+      db.capital.filter(c => c.date === today && !c.isCancelled && c.type === 'withdraw').forEach(c => todayOut += (c.amount||0));
+
+      document.getElementById('dashTodayExpense').innerText = fmt(todayExp);
+      document.getElementById('dashMonthExpense').innerText = fmt(monthExp);
+      document.getElementById('dashTotalReceivable').innerText = fmt(totalRec);
+      document.getElementById('dashTotalPayable').innerText = fmt(totalPay);
+      document.getElementById('dashDamageLoss').innerText = fmt(totalDamage);
+      document.getElementById('dashTodayCollected').innerText = fmt(todayCollected);
+      document.getElementById('dashTodayPaid').innerText = fmt(todayPaid);
+      document.getElementById('dashTodayInflow').innerText = fmt(todayIn);
+      document.getElementById('dashTodayOutflow').innerText = fmt(todayOut);
+
+      // Accounts grid
+      const accGrid = document.getElementById('dashAccountsGrid');
+      accGrid.innerHTML = db.accounts.map(a => {
+        const bal = getAccountBalance(a.id);
+        return `<div onclick="switchTab('cashbook')" class="bg-slate-950 border border-slate-800 rounded-xl p-2 flex items-center gap-2 active:scale-95 transition cursor-pointer">
+          <span class="text-lg">${a.icon}</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-[9px] text-slate-500 font-bold truncate">${escapeHtml(a.name)}</p>
+            <p class="text-xs font-black ${bal>=0?'text-emerald-400':'text-rose-400'}">${fmt(bal)}</p>
+          </div>
+        </div>`;
+      }).join('');
+
+      // Overdue
+      const overdueBox = document.getElementById('overdueAlert');
+      if (overdueRec > 0 || overduePay > 0) {
+        overdueBox.classList.remove('hidden');
+        document.getElementById('overdueReceivable').innerText = fmt(overdueRec);
+        document.getElementById('overduePayable').innerText = fmt(overduePay);
+      } else overdueBox.classList.add('hidden');
+
+      // Recent transactions (merged)
+      renderRecentTransactions();
+    }
+
+    function renderRecentTransactions() {
+      const all = [];
+      db.expenses.filter(e => !e.isCancelled).forEach(e => all.push({ type:'expense', date:e.date, time:e.createdAt||e.date, title:e.name||e.category, amount:e.amount, icon:'receipt', color:'rose' }));
+      db.dues.forEach(d => { if (d.payments) d.payments.forEach(p => all.push({ type:'collection', date:p.date, time:p.time||p.date, title:`${d.customer} - আদায়`, amount:p.amount, icon:'hand-coins', color:'emerald' })); });
+      db.payables.forEach(p => { if (p.payments) p.payments.forEach(pay => all.push({ type:'supplier-payment', date:pay.date, time:pay.time||pay.date, title:`${p.supplier} - পরিশোধ`, amount:pay.amount, icon:'send', color:'purple' })); });
+      db.damages.filter(d => !d.isCancelled).forEach(d => all.push({ type:'damage', date:d.date, time:d.createdAt||d.date, title:`${d.productName} - ড্যামেজ`, amount:d.lossAmount, icon:'alert-triangle', color:'red' }));
+      db.capital.filter(c => !c.isCancelled).forEach(c => all.push({ type: c.type==='deposit'?'capital-in':'capital-out', date:c.date, time:c.time||c.date, title: c.type==='deposit'?'মূলধন যোগ':'উত্তোলন', amount:c.amount, icon: c.type==='deposit'?'arrow-down-circle':'arrow-up-circle', color: c.type==='deposit'?'cyan':'orange' }));
+
+      all.sort((a,b) => (b.date + ' ' + (b.time||'')).localeCompare(a.date + ' ' + (a.time||'')));
+
+      document.getElementById('recentCount').innerText = `${all.length} টি`;
+
+      const container = document.getElementById('recentTransactions');
+      if (all.length === 0) {
+        container.innerHTML = '<p class="text-center text-slate-500 text-xs py-6">কোনো লেনদেন নেই</p>';
+        return;
+      }
+
+      container.innerHTML = all.slice(0, 10).map(t => {
+        const color = t.color || 'slate';
+        const inflow = ['collection','capital-in'].includes(t.type);
+        const sign = inflow ? '+' : '-';
+        const cls = inflow ? 'text-emerald-400' : 'text-rose-400';
+        return `<div class="flex items-center gap-2 py-1.5 border-b border-slate-800 last:border-0">
+          <div class="w-7 h-7 rounded-lg bg-${color}-500/15 text-${color}-400 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="${t.icon}" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[11px] font-bold text-white truncate">${escapeHtml(t.title)}</p>
+            <p class="text-[9px] text-slate-500">${t.date} ${t.time||''}</p>
+          </div>
+          <span class="text-xs font-black ${cls}">${sign}${fmt(t.amount)}</span>
+        </div>`;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // ============================================================
+    // অ্যাকাউন্ট ব্যালেন্স (সব সোর্স থেকে)
+    // ============================================================
+    function getAccountBalance(accId) {
+      const acc = db.accounts.find(a => a.id === accId);
+      if (!acc) return 0;
+      let bal = acc.startingBalance || 0;
+
+      // Sales (only cash/MFS/Card — না Due)
+      const salesMap = { Cash:'cash', MFS:'bkash', Card:'bank' };
+      db.sales.filter(s => !s.isCancelled).forEach(s => {
+        const key = salesMap[s.paymentMethod];
+        if (key === accId) bal += (s.totalAmount||0);
+      });
+
+      // Customer payments
+      db.dues.forEach(d => {
+        if (d.payments) d.payments.forEach(p => {
+          if (p.accountId === accId) bal += (p.amount||0);
+        });
+      });
+
+      // Supplier payments
+      db.payables.forEach(p => {
+        if (p.payments) p.payments.forEach(pay => {
+          if (pay.accountId === accId) bal -= (pay.amount||0);
+        });
+      });
+
+      // Expenses
+      db.expenses.filter(e => !e.isCancelled).forEach(e => {
+        if ((e.cashAccount||'cash') === accId) bal -= (e.amount||0);
+      });
+
+      // Damages — loss (স্টক লস, কিন্তু এই সিস্টেমে অটো-expense হয় না)
+      // so damages don't affect cash balance directly
+
+      // Capital
+      db.capital.filter(c => !c.isCancelled).forEach(c => {
+        if (c.accountId === accId) {
+          if (c.type === 'deposit') bal += (c.amount||0);
+          else if (c.type === 'withdraw') bal -= (c.amount||0);
+        }
+      });
+
+      // Transfers
+      db.cashTx.filter(t => !t.isCancelled && t.type === 'transfer').forEach(t => {
+        if (t.fromAccount === accId) bal -= (t.amount||0);
+        if (t.toAccount === accId) bal += (t.amount||0);
+      });
+
+      return bal;
+    }
+
+    // ============================================================
+    // খরচ
+    // ============================================================
+    function updateExpenseStats() {
+      const today = todayStr();
+      const monthStart = new Date().toISOString().slice(0,7) + '-01';
+      const tExp = db.expenses.filter(e => !e.isCancelled && e.date === today && e.type === 'business').reduce((s,e)=>s+(e.amount||0),0);
+      const mExp = db.expenses.filter(e => !e.isCancelled && e.date >= monthStart && e.type === 'business').reduce((s,e)=>s+(e.amount||0),0);
+      document.getElementById('expToday').innerText = fmt(tExp);
+      document.getElementById('expMonth').innerText = fmt(mExp);
+    }
+
+    function renderExpenses() {
+      const search = (document.getElementById('expSearch').value||'').toLowerCase().trim();
+      const cat = document.getElementById('expCategoryFilter').value;
+      const from = document.getElementById('expDateFrom').value;
+      const to = document.getElementById('expDateTo').value;
+
+      // Category filter options
+      const catSel = document.getElementById('expCategoryFilter');
+      const usedCats = [...new Set(db.expenses.map(e => e.category).filter(Boolean))];
+      catSel.innerHTML = `<option value="all">সব ক্যাটাগরি (${db.expenses.length})</option>` + usedCats.map(c => `<option value="${c}" ${c===cat?'selected':''}>${escapeHtml(c)}</option>`).join('');
+
+      let list = db.expenses.filter(e => !e.isCancelled);
+      if (search) list = list.filter(e => (e.name||'').toLowerCase().includes(search) || (e.category||'').toLowerCase().includes(search) || (e.note||'').toLowerCase().includes(search));
+      if (cat !== 'all') list = list.filter(e => e.category === cat);
+      if (from) list = list.filter(e => e.date >= from);
+      if (to) list = list.filter(e => e.date <= to);
+      list.sort((a,b) => (b.createdAt||b.date).localeCompare(a.createdAt||a.date));
+
+      const container = document.getElementById('expensesList');
+      if (list.length === 0) {
+        container.innerHTML = '<div class="text-center py-12 bg-slate-900/50 border border-slate-800 rounded-2xl"><i data-lucide="receipt" class="w-12 h-12 text-slate-700 mx-auto mb-2"></i><p class="text-slate-500 text-xs font-bold">কোনো খরচ নেই</p></div>';
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = list.map(e => `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 space-y-1.5">
+          <div class="flex justify-between items-start gap-2">
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-black text-white">${escapeHtml(e.name||e.category)}</p>
+              <p class="text-[10px] text-slate-500">${escapeHtml(e.category)} • ${e.date}</p>
+              ${e.type==='personal'?`<span class="inline-block text-[9px] bg-orange-500/20 text-orange-300 px-1.5 py-0.5 rounded mt-1">ব্যক্তিগত</span>`:''}
+            </div>
+            <span class="text-base font-black text-rose-400">-${fmt(e.amount)}</span>
+          </div>
+          ${e.note?`<p class="text-[10px] text-slate-400 bg-slate-950 rounded-lg p-1.5">${escapeHtml(e.note)}</p>`:''}
+          <div class="flex gap-1.5 pt-1">
+            <button onclick="editExpense('${e.id}')" class="flex-1 bg-cyan-500/15 text-cyan-300 py-1 rounded-lg text-[10px] font-bold border border-cyan-500/30 active:scale-95">এডিট</button>
+            <button onclick="deleteExpense('${e.id}')" class="flex-1 bg-rose-500/15 text-rose-300 py-1 rounded-lg text-[10px] font-bold border border-rose-500/30 active:scale-95">বাতিল</button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function resetExpFilters() {
+      document.getElementById('expSearch').value = '';
+      document.getElementById('expCategoryFilter').value = 'all';
+      document.getElementById('expDateFrom').value = '';
+      document.getElementById('expDateTo').value = '';
+      renderExpenses();
+    }
+
+    function openExpenseModal(id) {
+      document.getElementById('expId').value = id || '';
+      document.getElementById('expModalTitle').innerText = id ? 'খরচ এডিট' : 'নতুন খরচ';
+      
+      const catSel = document.getElementById('expCategory');
+      catSel.innerHTML = db.expCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+      
+      const accSel = document.getElementById('expAccount');
+      accSel.innerHTML = db.accounts.map(a => `<option value="${a.id}">${a.icon} ${escapeHtml(a.name)}</option>`).join('');
+
+      if (id) {
+        const e = db.expenses.find(x => x.id === id);
+        if (e) {
+          document.getElementById('expName').value = e.name||'';
+          document.getElementById('expCategory').value = e.category||'';
+          document.getElementById('expAmount').value = e.amount||'';
+          document.getElementById('expDate').value = e.date||todayStr();
+          document.getElementById('expAccount').value = e.cashAccount||'cash';
+          document.getElementById('expNote').value = e.note||'';
+          setExpType(e.type||'business');
+        }
+      } else {
+        document.getElementById('expName').value = '';
+        document.getElementById('expAmount').value = '';
+        document.getElementById('expDate').value = todayStr();
+        document.getElementById('expAccount').value = 'cash';
+        document.getElementById('expNote').value = '';
+        setExpType('business');
+      }
+      openModal('expenseModal');
+    }
+
+    function setExpType(type) {
+      state.expType = type;
+      const b = document.getElementById('expTypeBusiness');
+      const p = document.getElementById('expTypePersonal');
+      if (type === 'business') { b.className = 'py-2 rounded-lg text-xs font-black bg-rose-600 text-white active:scale-95 transition'; p.className = 'py-2 rounded-lg text-xs font-black bg-slate-800 text-slate-400 active:scale-95 transition'; }
+      else { b.className = 'py-2 rounded-lg text-xs font-black bg-slate-800 text-slate-400 active:scale-95 transition'; p.className = 'py-2 rounded-lg text-xs font-black bg-orange-600 text-white active:scale-95 transition'; }
+    }
+
+    function addNewCategory() {
+      const name = prompt('নতুন ক্যাটাগরির নাম:');
+      if (name && name.trim()) {
+        db.expCategories.push(name.trim());
+        saveDB();
+        document.getElementById('expCategory').innerHTML = db.expCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+        document.getElementById('expCategory').value = name.trim();
+        toast('✅ ক্যাটাগরি যোগ হয়েছে');
+      }
+    }
+
+    function saveExpense() {
+      const id = document.getElementById('expId').value;
+      const name = document.getElementById('expName').value.trim();
+      const category = document.getElementById('expCategory').value;
+      const amount = parseFloat(document.getElementById('expAmount').value) || 0;
+      const date = document.getElementById('expDate').value || todayStr();
+      const accountId = document.getElementById('expAccount').value;
+      const note = document.getElementById('expNote').value.trim();
+      const type = state.expType;
+
+      if (!name) return toast('❌ খরচের নাম দিন','error');
+      if (amount <= 0) return toast('❌ সঠিক পরিমাণ দিন','error');
+
+      if (id) {
+        const e = db.expenses.find(x => x.id === id);
+        if (e) {
+          Object.assign(e, { name, category, amount, date, cashAccount: accountId, note, type, lastUpdated: todayStr() });
+          logAudit('edit_expense', { id, name, amount });
+          toast('✅ খরচ আপডেট হয়েছে');
+        }
+      } else {
+        const newE = { id: uid('exp'), name, category, amount, date, cashAccount: accountId, note, type, createdAt: todayStr(), time: nowTime(), isCancelled: false };
+        db.expenses.push(newE);
+        logAudit('add_expense', { id: newE.id, name, amount });
+        toast('✅ খরচ যোগ হয়েছে');
+      }
+
+      saveDB();
+      closeModal('expenseModal');
+      renderDashboard(); renderExpenses(); updateExpenseStats();
+    }
+
+    function editExpense(id) { openExpenseModal(id); }
+
+    function deleteExpense(id) {
+      confirm('খরচ বাতিল করবেন?', 'এটি বাতিল হিসেবে চিহ্নিত হবে, হিসাব থেকে বাদ যাবে।', () => {
+        const e = db.expenses.find(x => x.id === id);
+        if (e) { e.isCancelled = true; e.cancelledAt = todayStr(); logAudit('cancel_expense', { id, name: e.name, amount: e.amount }); }
+        saveDB(); renderDashboard(); renderExpenses(); updateExpenseStats();
+        toast('খরচ বাতিল হয়েছে','info');
+      });
+    }
+
+    // ============================================================
+    // ড্যামেজ
+    // ============================================================
+    function renderDamages() {
+      const total = db.damages.filter(d => !d.isCancelled).reduce((s,d)=>s+(d.lossAmount||0),0);
+      document.getElementById('dmgTotalLoss').innerText = fmt(total);
+      document.getElementById('dmgTotalCount').innerText = toBn(db.damages.filter(d=>!d.isCancelled).length);
+
+      const list = db.damages.filter(d => !d.isCancelled).sort((a,b)=>(b.createdAt||b.date).localeCompare(a.createdAt||a.date));
+      const container = document.getElementById('damagesList');
+      if (list.length === 0) {
+        container.innerHTML = '<div class="text-center py-12 bg-slate-900/50 border border-slate-800 rounded-2xl"><i data-lucide="shield-check" class="w-12 h-12 text-emerald-700 mx-auto mb-2"></i><p class="text-slate-500 text-xs font-bold">কোনো ড্যামেজ নেই</p></div>';
+        lucide.createIcons();
+        return;
+      }
+      container.innerHTML = list.map(d => `
+        <div class="bg-slate-900 border border-rose-500/30 rounded-2xl p-3 space-y-1.5">
+          <div class="flex justify-between items-start gap-2">
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-black text-white">${escapeHtml(d.productName)}</p>
+              <p class="text-[10px] text-slate-500">${d.qty} পিস • ${escapeHtml(d.reason||'')} • ${d.date}</p>
+            </div>
+            <span class="text-base font-black text-rose-400">-${fmt(d.lossAmount)}</span>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function openDamageModal() {
+      if (db.products.length === 0) { toast('আগে inventory.html থেকে পণ্য যোগ করুন','error'); return; }
+      const sel = document.getElementById('dmgProduct');
+      sel.innerHTML = '<option value="">-- পণ্য বাছুন --</option>' + db.products.filter(p=>p.qty>0).map(p => `<option value="${p.id}">${escapeHtml(p.name)} (স্টক: ${p.qty})</option>`).join('');
+      document.getElementById('dmgQty').value = 1;
+      document.getElementById('dmgDate').value = todayStr();
+      document.getElementById('dmgNote').value = '';
+      document.getElementById('dmgStock').innerText = '০';
+      document.getElementById('dmgBuy').innerText = '৳০';
+      document.getElementById('dmgPreview').innerText = '৳০';
+      openModal('damageModal');
+    }
+
+    function updateDamageInfo() {
+      const id = document.getElementById('dmgProduct').value;
+      const p = db.products.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('dmgStock').innerText = p.qty;
+      document.getElementById('dmgBuy').innerText = fmt(p.buyPrice);
+      document.getElementById('dmgQty').max = p.qty;
+      updateDamagePreview();
+    }
+
+    function updateDamagePreview() {
+      const id = document.getElementById('dmgProduct').value;
+      const p = db.products.find(x => x.id === id);
+      if (!p) return;
+      const qty = parseInt(document.getElementById('dmgQty').value) || 0;
+      document.getElementById('dmgPreview').innerText = fmt(qty * (p.buyPrice||0));
+    }
+
+    function saveDamageEntry() {
+      const prodId = document.getElementById('dmgProduct').value;
+      const p = db.products.find(x => x.id === prodId);
+      if (!p) return toast('❌ পণ্য বাছুন','error');
+
+      const qty = parseInt(document.getElementById('dmgQty').value) || 0;
+      const reason = document.getElementById('dmgReason').value;
+      const date = document.getElementById('dmgDate').value || todayStr();
+      const note = document.getElementById('dmgNote').value.trim();
+
+      if (qty <= 0) return toast('❌ সঠিক পরিমাণ দিন','error');
+      if (qty > p.qty) return toast(`❌ সর্বোচ্চ ${p.qty} পিস`,'error');
+
+      const loss = qty * (p.buyPrice||0);
+
+      // স্টক কমানো (products আপডেট)
+      p.qty -= qty;
+
+      // Damage record
+      const dmg = { id: uid('dmg'), productId: p.id, productName: p.name, qty, buyPrice: p.buyPrice, lossAmount: loss, reason, notes: note, date, createdAt: todayStr(), time: nowTime(), isCancelled: false };
+      db.damages.push(dmg);
+
+      // Expense auto-create (for cash tracking)
+      const exp = { id: uid('exp'), name: `${p.name} ড্যামেজ`, category: 'মাল নষ্ট/ড্যামেজ', amount: loss, date, cashAccount: 'cash', note: `${qty} পিস - ${reason}`, type: 'business', createdAt: todayStr(), isAutoDamage: true, damageId: dmg.id, isCancelled: false };
+      db.expenses.push(exp);
+
+      logAudit('add_damage', { product: p.name, qty, loss });
+
+      // Save products too
+      localStorage.setItem(KEYS.products, JSON.stringify(db.products));
+      saveDB();
+      closeModal('damageModal');
+      renderDashboard(); renderExpenses(); renderDamages(); updateExpenseStats();
+      toast(`✅ ${qty} পিস ড্যামেজ এন্ট্রি (লস: ${fmt(loss)})`);
+    }
+
+    // ============================================================
+    // বাকি (কাস্টমার)
+    // ============================================================
+    function renderReceivables() {
+      const search = (document.getElementById('recvSearch').value||'').toLowerCase().trim();
+      const status = document.getElementById('recvStatusFilter').value;
+      const today = todayStr();
+
+      let list = db.dues.filter(d => !d.isCancelled);
+
+      let totalRec = 0, overdueRec = 0, uniqueCustomers = new Set();
+      db.dues.filter(d => !d.isCancelled).forEach(d => {
+        const due = (d.amount||0) - (d.paidAmount||0);
+        if (due > 0) {
+          totalRec += due;
+          uniqueCustomers.add((d.customer||'').toLowerCase());
+          if (d.dueDate && d.dueDate < today) overdueRec += due;
+        }
+      });
+      document.getElementById('recvTotal').innerText = fmt(totalRec);
+      document.getElementById('recvOverdue').innerText = fmt(overdueRec);
+      document.getElementById('recvCount').innerText = toBn(uniqueCustomers.size);
+
+      if (search) list = list.filter(d => (d.customer||'').toLowerCase().includes(search) || (d.phone||'').includes(search));
+      if (status === 'unpaid') list = list.filter(d => (d.paidAmount||0) === 0);
+      if (status === 'partial') list = list.filter(d => (d.paidAmount||0) > 0 && (d.paidAmount||0) < (d.amount||0));
+      if (status === 'paid') list = list.filter(d => (d.paidAmount||0) >= (d.amount||0));
+      if (status === 'overdue') list = list.filter(d => (d.amount||0) - (d.paidAmount||0) > 0 && d.dueDate && d.dueDate < today);
+
+      list.sort((a,b) => (b.createdAt||b.date).localeCompare(a.createdAt||a.date));
+
+      const container = document.getElementById('receivablesList');
+      if (list.length === 0) {
+        container.innerHTML = '<div class="text-center py-12 bg-slate-900/50 border border-slate-800 rounded-2xl"><i data-lucide="users" class="w-12 h-12 text-slate-700 mx-auto mb-2"></i><p class="text-slate-500 text-xs font-bold">কোনো বাকি নেই</p></div>';
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = list.map(d => {
+        const due = (d.amount||0) - (d.paidAmount||0);
+        const isOverdue = due > 0 && d.dueDate && d.dueDate < today;
+        const isPaid = due <= 0;
+        const isPartial = (d.paidAmount||0) > 0 && !isPaid;
+        const statusBadge = isPaid ? '<span class="bg-emerald-500/20 text-emerald-300 text-[9px] font-black px-1.5 py-0.5 rounded">পরিশোধিত</span>' :
+          isOverdue ? '<span class="bg-red-500/20 text-red-300 text-[9px] font-black px-1.5 py-0.5 rounded">মেয়াদ পার</span>' :
+          isPartial ? '<span class="bg-amber-500/20 text-amber-300 text-[9px] font-black px-1.5 py-0.5 rounded">আংশিক</span>' :
+          '<span class="bg-slate-700 text-slate-300 text-[9px] font-black px-1.5 py-0.5 rounded">অপরিশোধিত</span>';
+        return `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 space-y-2">
+          <div class="flex justify-between items-start gap-2">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <p class="text-xs font-black text-white">${escapeHtml(d.customer)}</p>
+                ${statusBadge}
+              </div>
+              <p class="text-[10px] text-slate-500">${d.phone?`📱 ${escapeHtml(d.phone)} • `:''}${d.date||''}${d.dueDate?` • পরিশোধ: ${d.dueDate}`:''}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 text-[10px]">
+            <div class="bg-slate-950 rounded-lg p-1.5 text-center"><p class="text-slate-500">মোট</p><p class="font-black text-white">${fmt(d.amount)}</p></div>
+            <div class="bg-slate-950 rounded-lg p-1.5 text-center"><p class="text-emerald-400">পরিশোধ</p><p class="font-black text-emerald-400">${fmt(d.paidAmount)}</p></div>
+            <div class="bg-slate-950 rounded-lg p-1.5 text-center"><p class="text-rose-400">বাকি</p><p class="font-black text-rose-400">${fmt(due)}</p></div>
+          </div>
+          ${due > 0 ? `<button onclick="collectFor('${d.id}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-1.5 rounded-lg text-[10px] active:scale-95 transition"><i data-lucide="hand-coins" class="w-3 h-3 inline"></i> টাকা আদায় করুন</button>` : ''}
+          <div class="flex gap-1.5">
+            <button onclick="viewStatement('${d.id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-1 rounded-lg text-[10px] font-bold active:scale-95">স্টেটমেন্ট</button>
+            <button onclick="deleteReceivable('${d.id}')" class="bg-rose-500/15 text-rose-300 px-2 py-1 rounded-lg text-[10px] font-bold active:scale-95">বাতিল</button>
+          </div>
+        </div>`;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function openReceivableModal() {
+      document.getElementById('recvId').value = '';
+      document.getElementById('recvModalTitle').innerText = 'নতুন বাকি';
+      document.getElementById('recvName').value = '';
+      document.getElementById('recvPhone').value = '';
+      document.getElementById('recvAmount').value = '';
+      document.getElementById('recvDate').value = todayStr();
+      document.getElementById('recvDueDate').value = '';
+      document.getElementById('recvInvoice').value = '';
+      document.getElementById('recvNote').value = '';
+      openModal('receivableModal');
+    }
+
+    function saveReceivable() {
+      const name = document.getElementById('recvName').value.trim();
+      const phone = document.getElementById('recvPhone').value.trim();
+      const amount = parseFloat(document.getElementById('recvAmount').value) || 0;
+      const date = document.getElementById('recvDate').value || todayStr();
+      const dueDate = document.getElementById('recvDueDate').value;
+      const invoice = document.getElementById('recvInvoice').value.trim();
+      const note = document.getElementById('recvNote').value.trim();
+
+      if (!name) return toast('❌ কাস্টমারের নাম দিন','error');
+      if (amount <= 0) return toast('❌ সঠিক পরিমাণ দিন','error');
+
+      const newDue = { id: uid('due'), customer: name, phone, amount, paidAmount: 0, payments: [], date, dueDate, invoiceId: invoice, note, isPaid: false, isCancelled: false, createdAt: todayStr() };
+      db.dues.push(newDue);
+      logAudit('add_receivable', { customer: name, amount });
+      saveDB();
+      closeModal('receivableModal');
+      renderDashboard(); renderReceivables();
+      toast('✅ নতুন বাকি যোগ হয়েছে');
+    }
+
+    function collectFor(id) {
+      openCollectionModal(id);
+    }
+
+    function openCollectionModal(preId) {
+      const sel = document.getElementById('colReceivableId');
+      const unpaid = db.dues.filter(d => !d.isCancelled && ((d.amount||0) - (d.paidAmount||0)) > 0);
+      if (unpaid.length === 0) { toast('কোনো বাকি নেই','info'); return; }
+      sel.innerHTML = unpaid.map(d => {
+        const rem = (d.amount||0) - (d.paidAmount||0);
+        return `<option value="${d.id}" ${d.id===preId?'selected':''}>${escapeHtml(d.customer)} — বাকি ${fmt(rem)}</option>`;
+      }).join('');
+      const accSel = document.getElementById('colAccount');
+      accSel.innerHTML = db.accounts.map(a => `<option value="${a.id}">${a.icon} ${escapeHtml(a.name)}</option>`).join('');
+      document.getElementById('colAmount').value = '';
+      document.getElementById('colNote').value = '';
+      updateCollectionInfo();
+      openModal('collectionModal');
+    }
+
+    function updateCollectionInfo() {
+      const id = document.getElementById('colReceivableId').value;
+      const d = db.dues.find(x => x.id === id);
+      if (!d) return;
+      document.getElementById('colTotalDue').innerText = fmt(d.amount);
+      document.getElementById('colPaid').innerText = fmt(d.paidAmount||0);
+      const rem = (d.amount||0) - (d.paidAmount||0);
+      document.getElementById('colRemaining').innerText = fmt(rem);
+      document.getElementById('colAmount').max = rem;
+    }
+
+    function setColAmount(pct) {
+      const id = document.getElementById('colReceivableId').value;
+      const d = db.dues.find(x => x.id === id);
+      if (!d) return;
+      const rem = (d.amount||0) - (d.paidAmount||0);
+      document.getElementById('colAmount').value = Math.round(rem * pct);
+    }
+
+    function saveCollection() {
+      const id = document.getElementById('colReceivableId').value;
+      const d = db.dues.find(x => x.id === id);
+      if (!d) return toast('❌ বাকি বাছুন','error');
+
+      const amount = parseFloat(document.getElementById('colAmount').value) || 0;
+      const account = document.getElementById('colAccount').value;
+      const note = document.getElementById('colNote').value.trim();
+      const rem = (d.amount||0) - (d.paidAmount||0);
+
+      if (amount <= 0) return toast('❌ সঠিক পরিমাণ দিন','error');
+      if (amount > rem) return toast(`❌ সর্বোচ্চ ${fmt(rem)}`,'error');
+
+      if (!d.payments) d.payments = [];
+      d.payments.push({ id: uid('pay'), date: todayStr(), time: nowTime(), amount, accountId: account, note });
+      d.paidAmount = (d.paidAmount||0) + amount;
+      if (d.paidAmount >= d.amount) d.isPaid = true;
+
+      logAudit('collect_payment', { customer: d.customer, amount });
+      saveDB();
+      closeModal('collectionModal');
+      renderDashboard(); renderReceivables();
+      showCollectionReceipt(d, amount, account);
+      toast(`✅ ${fmt(amount)} আদায় হয়েছে`);
+    }
+
+    function showCollectionReceipt(due, amount, account) {
+      const acc = db.accounts.find(a => a.id === account);
+      document.getElementById('receiptContent').innerHTML = `
+        <div style="text-align:center;border-bottom:2px dashed #333;padding-bottom:10px;margin-bottom:10px;">
+          <h1 style="font-size:18px;font-weight:900;margin:0;color:#0f172a;">Talha Tech</h1>
+          <p style="font-size:10px;margin:2px 0;color:#666;">মোবাইল এক্সেসরিজ</p>
+          <p style="font-size:9px;margin:1px 0;color:#888;">কারওয়ান বাজার, ঢাকা • 01516513987</p>
+          <div style="background:#10b981;color:white;font-weight:900;padding:4px 12px;border-radius:6px;font-size:11px;display:inline-block;margin-top:6px;">টাকা প্রাপ্তি রশিদ</div>
+        </div>
+        <div style="font-size:11px;color:#333;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;margin:2px 0;"><span>তারিখ:</span><b>${todayStr()}</b></div>
+          <div style="display:flex;justify-content:space-between;margin:2px 0;"><span>সময়:</span><b>${nowTime()}</b></div>
+          <div style="display:flex;justify-content:space-between;margin:2px 0;"><span>ক্রেতা:</span><b>${escapeHtml(due.customer)}</b></div>
+          ${due.phone?`<div style="display:flex;justify-content:space-between;margin:2px 0;"><span>ফোন:</span><b>${escapeHtml(due.phone)}</b></div>`:''}
+        </div>
+        <div style="border:2px solid #10b981;border-radius:8px;padding:10px;text-align:center;margin:10px 0;">
+          <p style="font-size:10px;color:#666;margin:0;">গৃহীত পরিমাণ</p>
+          <p style="font-size:24px;font-weight:900;color:#10b981;margin:4px 0;">৳${Math.round(amount).toLocaleString('en-IN')}</p>
+          <p style="font-size:9px;color:#666;margin:0;">${acc?acc.name:'ক্যাশ'}</p>
+        </div>
+        <div style="border-top:1px dashed #999;padding-top:8px;margin-top:10px;font-size:10px;color:#333;">
+          <div style="display:flex;justify-content:space-between;margin:2px 0;"><span>মোট বিল:</span><b>৳${Math.round(due.amount).toLocaleString('en-IN')}</b></div>
+          <div style="display:flex;justify-content:space-between;margin:2px 0;"><span>মোট পরিশোধ:</span><b style="color:#10b981;">৳${Math.round(due.paidAmount).toLocaleString('en-IN')}</b></div>
+          <div style="display:flex;justify-content:space-between;margin:2px 0;padding-top:4px;border-top:1px solid #ddd;"><span>অবশিষ্ট:</span><b style="color:#ef4444;">৳${Math.round(due.amount - due.paidAmount).toLocaleString('en-IN')}</b></div>
+        </div>
+        <div style="text-align:center;font-size:9px;color:#666;margin-top:12px;padding-top:8px;border-top:1px dashed #999;">
+          <p style="margin:2px 0;">ধন্যবাদ! 🙏</p>
+        </div>
+      `;
+      openModal('receiptModal');
+    }
+
+    function viewStatement(id) {
+      const d = db.dues.find(x => x.id === id);
+      if (!d) return;
+      const payments = d.payments || [];
+      let html = `<div style="text-align:center;border-bottom:2px solid #0f172a;padding-bottom:10px;margin-bottom:10px;"><h1 style="font-size:16px;font-weight:900;margin:0;">Talha Tech</h1><p style="font-size:10px;color:#666;margin:2px 0;">কাস্টমার স্টেটমেন্ট</p></div>`;
+      html += `<div style="font-size:11px;margin-bottom:10px;"><p style="margin:2px 0;"><b>নাম:</b> ${escapeHtml(d.customer)}</p>${d.phone?`<p style="margin:2px 0;"><b>ফোন:</b> ${escapeHtml(d.phone)}</p>`:''}<p style="margin:2px 0;"><b>তারিখ:</b> ${d.date}</p></div>`;
+      html += `<table style="width:100%;border-collapse:collapse;font-size:10px;margin:10px 0;"><tr style="background:#f3f4f6;"><th style="border:1px solid #ddd;padding:5px;text-align:left;">তারিখ</th><th style="border:1px solid #ddd;padding:5px;text-align:right;">পরিমাণ</th><th style="border:1px solid #ddd;padding:5px;text-align:left;">অ্যাকাউন্ট</th></tr>`;
+      payments.forEach(p => {
+        const acc = db.accounts.find(a => a.id === p.accountId);
+        html += `<tr><td style="border:1px solid #ddd;padding:5px;">${p.date}</td><td style="border:1px solid #ddd;padding:5px;text-align:right;color:#10b981;font-weight:700;">৳${Math.round(p.amount).toLocaleString('en-IN')}</td><td style="border:1px solid #ddd;padding:5px;">${acc?acc.name:'—'}</td></tr>`;
+      });
+      html += `</table>`;
+      html += `<div style="font-size:11px;background:#f9fafb;padding:8px;border-radius:6px;"><div style="display:flex;justify-content:space-between;margin:2px 0;"><span>মোট বাকি:</span><b>৳${Math.round(d.amount).toLocaleString('en-IN')}</b></div><div style="display:flex;justify-content:space-between;margin:2px 0;"><span>মোট পরিশোধিত:</span><b style="color:#10b981;">৳${Math.round(d.paidAmount).toLocaleString('en-IN')}</b></div><div style="display:flex;justify-content:space-between;margin:2px 0;padding-top:4px;border-top:1px solid #ddd;"><span>অবশিষ্ট:</span><b style="color:#ef4444;">৳${Math.round(d.amount - d.paidAmount).toLocaleString('en-IN')}</b></div></div>`;
+      document.getElementById('receiptContent').innerHTML = html;
+      openModal('receiptModal');
+    }
+
+    function deleteReceivable(id) {
+      confirm('বাকি বাতিল করবেন?', 'হিসাব থেকে বাদ যাবে, কিন্তু পেমেন্ট ইতিহাস থাকবে।', () => {
+        const d = db.dues.find(x => x.id === id);
+        if (d) { d.isCancelled = true; logAudit('cancel_receivable', { customer: d.customer, amount: d.amount }); }
+        saveDB(); renderDashboard(); renderReceivables();
+        toast('বাকি বাতিল হয়েছে','info');
+      });
+    }
+
+    function exportReceivablesCSV() {
+      const list = db.dues.filter(d => !d.isCancelled);
+      if (!list.length) return toast('কোনো ডেটা নেই','error');
+      const rows = [['নাম','ফোন','মোট বাকি','পরিশোধিত','অবশিষ্ট','তারিখ','পরিশোধের তারিখ','স্ট্যাটাস']];
+      list.forEach(d => {
+        const due = (d.amount||0) - (d.paidAmount||0);
+        const status = due <= 0 ? 'পরিশোধিত' : (d.dueDate && d.dueDate < todayStr() ? 'মেয়াদ পার' : (d.paidAmount>0 ? 'আংশিক' : 'অপরিশোধিত'));
+        rows.push([d.customer, d.phone, d.amount, d.paidAmount, due, d.date, d.dueDate||'', status]);
+      });
+      const csv = rows.map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+      const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `receivables_${todayStr()}.csv`; a.click();
+      toast('✅ CSV ডাউনলোড হয়েছে');
+    }
+
+    // ============================================================
+    // দেনা (সাপ্লায়ার)
+    // ============================================================
+    function renderPayables() {
+      const search = (document.getElementById('paySearch').value||'').toLowerCase().trim();
+      const status = document.getElementById('payStatusFilter').value;
+      const today = todayStr();
+
+      let totalPay = 0, overduePay = 0, uniqueSuppliers = new Set();
+      db.payables.filter(p => !p.isCancelled).forEach(p => {
+        const due = (p.amount||0) - (p.paidAmount||0);
+        if (due > 0) {
+          totalPay += due;
+          uniqueSuppliers.add((p.supplier||'').toLowerCase());
+          if (p.dueDate && p.dueDate < today) overduePay += due;
+        }
+      });
+      document.getElementById('payTotal').innerText = fmt(totalPay);
+      document.getElementById('payOverdue').innerText = fmt(overduePay);
+      document.getElementById('payCount').innerText = toBn(uniqueSuppliers.size);
+
+      let list = db.payables.filter(p => !p.isCancelled);
+      if (search) list = list.filter(p => (p.supplier||'').toLowerCase().includes(search) || (p.invoice||'').toLowerCase().includes(search));
+      if (status === 'unpaid') list = list.filter(p => (p.paidAmount||0) === 0);
+      if (status === 'partial') list = list.filter(p => (p.paidAmount||0) > 0 && (p.paidAmount||0) < (p.amount||0));
+      if (status === 'paid') list = list.filter(p => (p.paidAmount||0) >= (p.amount||0));
+      if (status === 'overdue') list = list.filter(p => (p.amount||0) - (p.paidAmount||0) > 0 && p.dueDate && p.dueDate < today);
+
+      list.sort((a,b) => (b.createdAt||b.date).localeCompare(a.createdAt||a.date));
+
+      const container = document.getElementById('payablesList');
+      if (list.length === 0) {
+        container.innerHTML = '<div class="text-center py-12 bg-slate-900/50 border border-slate-800 rounded-2xl"><i data-lucide="factory" class="w-12 h-12 text-slate-700 mx-auto mb-2"></i><p class="text-slate-500 text-xs font-bold">কোনো দেনা নেই</p></div>';
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = list.map(p => {
+        const due = (p.amount||0) - (p.paidAmount||0);
+        const isOverdue = due > 0 && p.dueDate && p.dueDate < today;
+        const isPaid = due <= 0;
+        const isPartial = (p.paidAmount||0) > 0 && !isPaid;
+        const statusBadge = isPaid ? '<span class="bg-emerald-500/20 text-emerald-300 text-[9px] font-black px-1.5 py-0.5 rounded">পরিশোধিত</span>' :
+          isOverdue ? '<span class="bg-red-500/20 text-red-300 text-[9px] font-black px-1.5 py-0.5 rounded">মেয়াদ পার</span>' :
+          isPartial ? '<span class="bg-amber-500/20 text-amber-300 text-[9px] font-black px-1.5 py-0.5 rounded">আংশিক</span>' :
+          '<span class="bg-slate-700 text-slate-300 text-[9px] font-black px-1.5 py-0.5 rounded">অপরিশোধিত</span>';
+        return `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 space-y-2">
+          <div class="flex justify-between items-start gap-2">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <p class="text-xs font-black text-white">${escapeHtml(p.supplier)}</p>
+                ${statusBadge}
+              </div>
+              <p class="text-[10px] text-slate-500">${p.phone?`📱 ${escapeHtml(p.phone)} • `:''}${p.invoice?`চালান: ${escapeHtml(p.invoice)} • `:''}${p.date||''}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 text-[10px]">
+            <div class="bg-slate-950 rounded-lg p-1.5 text-center"><p class="text-slate-500">মোট</p><p class="font-black text-white">${fmt(p.amount)}</p></div>
+            <div class="bg-slate-950 rounded-lg p-1.5 text-center"><p class="text-emerald-400">পরিশোধ</p><p class="font-black text-emerald-400">${fmt(p.paidAmount)}</p></div>
+            <div class="bg-slate-950 rounded-lg p-1.5 text-center"><p class="text-rose-400">বাকি</p><p class="font-black text-rose-400">${fmt(due)}</p></div>
+          </div>
+          ${due > 0 ? `<button onclick="payToSupplier('${p.id}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-1.5 rounded-lg text-[10px] active:scale-95 transition"><i data-lucide="send" class="w-3 h-3 inline"></i> পেমেন্ট করুন</button>` : ''}
+          <div class="flex gap-1.5">
+            <button onclick="deletePayable('${p.id}')" class="flex-1 bg-rose-500/15 text-rose-300 py-1 rounded-lg text-[10px] font-bold active:scale-95">বাতিল</button>
+          </div>
+        </div>`;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function openPayableModal() {
+      document.getElementById('payId').value = '';
+      document.getElementById('payModalTitle').innerText = 'নতুন দেনা';
+      document.getElementById('paySupplier').value = '';
+      document.getElementById('payPhone').value = '';
+      document.getElementById('payInvoice').value = '';
+      document.getElementById('payAmount').value = '';
+      document.getElementById('payDate').value = todayStr();
+      document.getElementById('payDueDate').value = '';
+      document.getElementById('payNote').value = '';
+      openModal('payableModal');
+    }
+
+    function savePayable() {
+      const supplier = document.getElementById('paySupplier').value.trim();
+      const phone = document.getElementById('payPhone').value.trim();
+      const invoice = document.getElementById('payInvoice').value.trim();
+      const amount = parseFloat(document.getElementById('payAmount').value) || 0;
+      const date = document.getElementById('payDate').value || todayStr();
+      const dueDate = document.getElementById('payDueDate').value;
+      const note = document.getElementById('payNote').value.trim();
+
+      if (!supplier) return toast('❌ সাপ্লায়ারের নাম দিন','error');
+      if (amount <= 0) return toast('❌ সঠিক পরিমাণ দিন','error');
+
+      const newPay = { id: uid('pay'), supplier, phone, invoice, amount, paidAmount: 0, payments: [], date, dueDate, note, isCancelled: false, createdAt: todayStr() };
+      db.payables.push(newPay);
+      logAudit('add_payable', { supplier, amount });
+      saveDB();
+      closeModal('payableModal');
+      renderDashboard(); renderPayables();
+      toast('✅ নতুন দেনা যোগ হয়েছে');
+    }
+
+    function payToSupplier(id) {
+      openSupplierPaymentModal(id);
+    }
+
+    function openSupplierPaymentModal(preId) {
+      const sel = document.getElementById('spPayableId');
+      const unpaid = db.payables.filter(p => !p.isCancelled && ((p.amount||0) - (p.paidAmount||0)) > 0);
+      if (unpaid.length === 0) { toast('কোনো দেনা নেই','info'); return; }
+      sel.innerHTML = unpaid.map(p => {
+        const rem = (p.amount||0) - (p.paidAmount||0);
+        return `<option value="${p.id}" ${p.id===preId?'selected':''}>${escapeHtml(p.supplier)} — বাকি ${fmt(rem)}</option>`;
+      }).join('');
+      const accSel = document.getElementById('spAccount');
+      accSel.innerHTML = db.accounts.map(a => `<option value="${a.id}">${a.icon} ${escapeHtml(a.name)}</option>`).join('');
+      document.getElementById('spAmount').value = '';
+      document.getElementById('spNote').value = '';
+      updateSupplierPaymentInfo();
+      openModal('supplierPaymentModal');
+    }
+
+    function updateSupplierPaymentInfo() {
+      const id = document.getElementById('spPayableId').value;
+      const p = db.payables.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('spTotalDue').innerText = fmt(p.amount);
+      document.getElementById('spPaid').innerText = fmt(p.paidAmount||0);
+      const rem = (p.amount||0) - (p.paidAmount||0);
+      document.getElementById('spRemaining').innerText = fmt(rem);
+      document.getElementById('spAmount').max = rem;
+    }
+
+    function setSpAmount(pct) {
+      const id = document.getElementById('spPayableId').value;
+      const p = db.payables.find(x => x.id === id);
+      if (!p) return;
+      const rem = (p.amount||0) - (p.paidAmount||0);
+      document.getElementById('spAmount').value = Math.round(rem * pct);
+    }
+
+    function saveSupplierPayment() {
+      const id = document.getElementById('spPayableId').value;
+      const p = db.payables.find(x => x.id === id);
+      if (!p) return toast('❌ সাপ্লায়ার বাছুন','error');
+
+      const amount = parseFloat(document.getElementById('spAmount').value) || 0;
+      const account = document.getElementById('spAccount').value;
+      const note = document.getElementById('spNote').value.trim();
+      const rem = (p.amount||0) - (p.paidAmount||0);
+
+      if (amount <= 0) return toast('❌ সঠিক পরিমাণ দিন','error');
+      if (amount > rem) return toast(`❌ সর্বোচ্চ ${fmt(rem)}`,'error');
+
+      if (!p.payments) p.payments = [];
+      p.payments.push({ id: uid('sp_pay'), date: todayStr(), time: nowTime(), amount, accountId: account, note });
+      p.paidAmount = (p.paidAmount||0) + amount;
+
+      logAudit('supplier_payment', { supplier: p.supplier, amount });
+      saveDB();
+      closeModal('supplierPaymentModal');
+      renderDashboard(); renderPayables();
+      toast(`✅ ${fmt(amount)} পরিশোধ হয়েছে`);
+    }
+
+    function deletePayable(id) {
+      confirm('দেনা বাতিল করবেন?', 'হিসাব থেকে বাদ যাবে।', () => {
+        const p = db.payables.find(x => x.id === id);
+        if (p) { p.isCancelled = true; logAudit('cancel_payable', { supplier: p.supplier, amount: p.amount }); }
+        saveDB(); renderDashboard(); renderPayables();
+        toast('দেনা বাতিল হয়েছে','info');
+      });
+    }
+
+    function exportPayablesCSV() {
+      const list = db.payables.filter(p => !p.isCancelled);
+      if (!list.length) return toast('কোনো ডেটা নেই','error');
+      const rows = [['সাপ্লায়ার','ফোন','চালান','মোট দেনা','পরিশোধিত','অবশিষ্ট','তারিখ','পরিশোধের তারিখ']];
+      list.forEach(p => {
+        rows.push([p.supplier, p.phone, p.invoice||'', p.amount, p.paidAmount, (p.amount||0)-(p.paidAmount||0), p.date, p.dueDate||'']);
+      });
+      const csv = rows.map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+      const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `payables_${todayStr()}.csv`; a.click();
+      toast('✅ CSV ডাউনলোড হয়েছে');
+    }
+
+    // ============================================================
+    // ক্যাশবুক
+    // ============================================================
+    function renderCashbook() {
+      // Accounts
+      const grid = document.getElementById('accountsGrid');
+      let totalBal = 0;
+      grid.innerHTML = db.accounts.map(a => {
+        const bal = getAccountBalance(a.id);
+        totalBal += bal;
+        return `<div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center gap-2">
+          <span class="text-2xl">${a.icon}</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-[10px] text-slate-500 font-bold truncate">${escapeHtml(a.name)}</p>
+            <p class="text-sm font-black ${bal>=0?'text-emerald-400':'text-rose-400'}">${fmt(bal)}</p>
+          </div>
+          <button onclick="editAccount('${a.id}')" class="text-slate-500 p-1 active:scale-90"><i data-lucide="pencil" class="w-3 h-3"></i></button>
+        </div>`;
+      }).join('') + `<div class="bg-gradient-to-r from-emerald-950/60 to-cyan-950/40 border border-emerald-500/30 rounded-xl p-2.5 flex items-center gap-2">
+        <span class="text-2xl">💰</span>
+        <div class="flex-1">
+          <p class="text-[10px] text-emerald-300 font-bold">মোট ব্যালেন্স</p>
+          <p class="text-base font-black text-emerald-400">${fmt(totalBal)}</p>
+        </div>
+      </div>`;
+
+      // Capital totals
+      const capIn = db.capital.filter(c => !c.isCancelled && c.type==='deposit').reduce((s,c)=>s+(c.amount||0),0);
+      const capOut = db.capital.filter(c => !c.isCancelled && c.type==='withdraw').reduce((s,c)=>s+(c.amount||0),0);
+      document.getElementById('totalCapital').innerText = fmt(capIn);
+      document.getElementById('totalWithdraw').innerText = fmt(capOut);
+
+      renderCashTransactions();
+      lucide.createIcons();
+    }
+
+    function renderCashTransactions() {
+      const filter = document.getElementById('txTypeFilter').value;
+      const all = [];
+
+      // Sales
+      const salesMap = { Cash:'cash', MFS:'bkash', Card:'bank' };
+      db.sales.filter(s => !s.isCancelled && s.paymentMethod && s.paymentMethod !== 'Due').forEach(s => {
+        all.push({ id: s.invoiceId, date: s.date, time: s.time, title: `বিক্রি ${s.invoiceId}`, amount: s.totalAmount, direction:'in', icon:'shopping-cart', color:'cyan', account: s.paymentMethod });
+      });
+
+      // Expenses
+      db.expenses.filter(e => !e.isCancelled).forEach(e => {
+        all.push({ id: e.id, date: e.date, time: e.createdAt, title: `${e.name||e.category} (খরচ)`, amount: e.amount, direction:'out', icon:'receipt', color:'rose', account: e.cashAccount });
+      });
+
+      // Customer payments
+      db.dues.forEach(d => {
+        if (d.payments) d.payments.forEach(p => {
+          all.push({ id: p.id, date: p.date, time: p.time, title: `${d.customer} - আদায়`, amount: p.amount, direction:'in', icon:'hand-coins', color:'emerald', account: p.accountId });
+        });
+      });
+
+      // Supplier payments
+      db.payables.forEach(p => {
+        if (p.payments) p.payments.forEach(pay => {
+          all.push({ id: pay.id, date: pay.date, time: pay.time, title: `${p.supplier} - পরিশোধ`, amount: pay.amount, direction:'out', icon:'send', color:'purple', account: pay.accountId });
+        });
+      });
+
+      // Capital
+      db.capital.filter(c => !c.isCancelled).forEach(c => {
+        all.push({ id: c.id, date: c.date, time: c.time, title: c.type==='deposit'?'মূলধন যোগ':'উত্তোলন', amount: c.amount, direction: c.type==='deposit'?'in':'out', icon: c.type==='deposit'?'plus-circle':'minus-circle', color: c.type==='deposit'?'cyan':'orange', account: c.accountId });
+      });
+
+      // Transfers
+      db.cashTx.filter(t => !t.isCancelled && t.type==='transfer').forEach(t => {
+        all.push({ id: t.id, date: t.date, time: t.time, title: `ট্রান্সফার (${t.fromAccount}→${t.toAccount})`, amount: t.amount, direction:'transfer', icon:'arrow-left-right', color:'indigo', account: t.fromAccount });
+      });
+
+      all.sort((a,b) => (b.date+(b.time||'')).localeCompare(a.date+(a.time||'')));
+
+      let filtered = all;
+      if (filter === 'inflow') filtered = all.filter(t => t.direction === 'in');
+      if (filter === 'outflow') filtered = all.filter(t => t.direction === 'out');
+      if (filter === 'transfer') filtered = all.filter(t => t.direction === 'transfer');
+
+      const container = document.getElementById('cashTransactionsList');
+      if (filtered.length === 0) {
+        container.innerHTML = '<p class="text-center text-slate-500 text-xs py-6">কোনো লেনদেন নেই</p>';
+        return;
+      }
+
+      container.innerHTML = filtered.slice(0, 100).map(t => {
+        const acc = db.accounts.find(a => a.id === t.account);
+        const isIn = t.direction === 'in';
+        const isTransfer = t.direction === 'transfer';
+        const sign = isIn ? '+' : (isTransfer ? '' : '-');
+        const cls = isIn ? 'text-emerald-400' : (isTransfer ? 'text-indigo-400' : 'text-rose-400');
+        return `<div class="flex items-center gap-2 py-1.5 border-b border-slate-800 last:border-0">
+          <div class="w-7 h-7 rounded-lg bg-${t.color}-500/15 text-${t.color}-400 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="${t.icon}" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[11px] font-bold text-white truncate">${escapeHtml(t.title)}</p>
+            <p class="text-[9px] text-slate-500">${t.date} ${t.time||''} ${acc?'• '+acc.name:''}</p>
+          </div>
+          <span class="text-xs font-black ${cls}">${sign}${fmt(t.amount)}</span>
+        </div>`;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function openTransferModal() {
+      document.getElementById('tfFrom').innerHTML = db.accounts.map(a => `<option value="${a.id}">${a.icon} ${escapeHtml(a.name)}</option>`).join('');
+      document.getElementById('tfTo').innerHTML = db.accounts.map(a => `<option value="${a.id}">${a.icon} ${escapeHtml(a.name)}</option>`).join('');
+      document.getElementById('tfTo').selectedIndex = 1;
+      document.getElementById('tfAmount').value = '';
+      document.getElementById('tfNote').value = '';
+      openModal('transferModal');
+    }
+
+    function saveTransfer() {
+      const from = document.getElementById('tfFrom').value;
+      const to = document.getElementById('tfTo').value;
+      const amount = parseFloat(document.getElementById('tfAmount').value) || 0;
+      const note = document.getElementById('tfNote').value.trim();
+
+      if (from === to) return toast('❌ একই অ্যাকাউন্টে ট্রান্সফার হবে না','error');
+      if (amount <= 0) return toast('❌ সঠিক পরিমাণ দিন','error');
+
+      const tx = { id: uid('tf'), type:'transfer', fromAccount: from, toAccount: to, amount, note, date: todayStr(), time: nowTime(), isCancelled: false };
+      db.cashTx.push(tx);
+      logAudit('transfer', { from, to, amount });
+      saveDB();
+      closeModal('transferModal');
+      renderCashbook(); renderDashboard();
+      toast(`✅ ${fmt(amount)} ট্রান্সফার হয়েছে`);
+    }
+
+    function openCapitalModal(type) {
+      document.getElementById('capType').value = type;
+      document.getElementById('capTitle').innerText = type === 'deposit' ? 'মূলধন যোগ' : 'টাকা উত্তোলন';
+      document.getElementById('capAccount').innerHTML = db.accounts.map(a => `<option value="${a.id}">${a.icon} ${escapeHtml(a.name)}</option>`).join('');
+      document.getElementById('capAmount').value = '';
+      document.getElementById('capNote').value = '';
+      openModal('capitalModal');
+    }
+
+    function saveCapitalTransaction() {
+      const type = document.getElementById('capType').value;
+      const account = document.getElementById('capAccount').value;
+      const amount = parseFloat(document.getElementById('capAmount').value) || 0;
+      const note = document.getElementById('capNote').value.trim();
+
+      if (amount <= 0) return toast('❌ সঠিক পরিমাণ দিন','error');
+
+      const c = { id: uid('cap'), type, accountId: account, amount, note, date: todayStr(), time: nowTime(), isCancelled: false };
+      db.capital.push(c);
+      logAudit(type==='deposit'?'capital_deposit':'capital_withdraw', { amount, account });
+      saveDB();
+      closeModal('capitalModal');
+      renderCashbook(); renderDashboard();
+      toast(type==='deposit'?`✅ ${fmt(amount)} মূলধন যোগ হয়েছে`:`✅ ${fmt(amount)} উত্তোলন হয়েছে`);
+    }
+
+    function openAccountModal() {
+      document.getElementById('accName').value = '';
+      document.getElementById('accStart').value = '';
+      document.getElementById('accIcon').value = '🏦';
+      openModal('accountModal');
+    }
+
+    function saveAccount() {
+      const name = document.getElementById('accName').value.trim();
+      const start = parseFloat(document.getElementById('accStart').value) || 0;
+      const icon = document.getElementById('accIcon').value || '🏦';
+      if (!name) return toast('❌ নাম দিন','error');
+      const newAcc = { id: 'acc_'+Date.now(), name, icon, startingBalance: start };
+      db.accounts.push(newAcc);
+      logAudit('add_account', { name });
+      saveDB();
+      closeModal('accountModal');
+      renderCashbook(); renderDashboard();
+      toast('✅ নতুন অ্যাকাউন্ট তৈরি হয়েছে');
+    }
+
+    function editAccount(id) {
+      const a = db.accounts.find(x => x.id === id);
+      if (!a) return;
+      const newName = prompt('অ্যাকাউন্টের নাম:', a.name);
+      if (newName && newName.trim()) {
+        a.name = newName.trim();
+        const newStart = prompt('শুরুর ব্যালেন্স:', a.startingBalance);
+        if (newStart !== null) a.startingBalance = parseFloat(newStart) || 0;
+        saveDB(); renderCashbook(); renderDashboard();
+        toast('✅ আপডেট হয়েছে');
+      }
+    }
+
+    // ============================================================
+    // রিপোর্ট
+    // ============================================================
+    function setReportPeriod(period) {
+      state.reportPeriod = period;
+      ['today','week','month','all'].forEach(p => {
+        const btn = document.getElementById('repBtn'+p.charAt(0).toUpperCase()+p.slice(1));
+        if (p === period) btn.className = 'py-1.5 rounded-lg text-[10px] font-black bg-cyan-600 text-slate-950 active:scale-95 transition';
+        else btn.className = 'py-1.5 rounded-lg text-[10px] font-black text-slate-400 active:scale-95 transition';
+      });
+      renderReports();
+    }
+
+    function getReportDateRange() {
+      const now = new Date();
+      const today = todayStr();
+      if (state.reportPeriod === 'today') return { from: today, to: today };
+      if (state.reportPeriod === 'week') {
+        const d = new Date(); d.setDate(d.getDate()-7);
+        return { from: d.toISOString().split('T')[0], to: today };
+      }
+      if (state.reportPeriod === 'month') {
+        return { from: now.toISOString().slice(0,7)+'-01', to: today };
+      }
+      return { from: '2000-01-01', to: '2100-01-01' };
+    }
+
+    function renderReports() {
+      const { from, to } = getReportDateRange();
+      const inRange = (d) => d >= from && d <= to;
+
+      const sales = db.sales.filter(s => !s.isCancelled && inRange(s.date)).reduce((a,s)=>a+(s.totalAmount||0),0);
+      const operatingExp = db.expenses.filter(e => !e.isCancelled && inRange(e.date) && e.category !== 'মাল নষ্ট/ড্যামেজ').reduce((a,e)=>a+(e.amount||0),0);
+      const damageLoss = db.damages.filter(d => !d.isCancelled && inRange(d.date)).reduce((a,d)=>a+(d.lossAmount||0),0);
+      
+      let collections = 0;
+      db.dues.forEach(d => { if (d.payments) d.payments.forEach(p => { if (inRange(p.date)) collections += (p.amount||0); }); });
+      
+      let supplierPays = 0;
+      db.payables.forEach(p => { if (p.payments) p.payments.forEach(pay => { if (inRange(pay.date)) supplierPays += (pay.amount||0); }); });
+
+      const netCash = sales + collections - operatingExp - damageLoss - supplierPays;
+
+      document.getElementById('repTotalSales').innerText = fmt(sales);
+      document.getElementById('repOperatingExpenses').innerText = fmt(operatingExp);
+      document.getElementById('repDamageLoss').innerText = fmt(damageLoss);
+      document.getElementById('repCollections').innerText = fmt(collections);
+      document.getElementById('repSupplierPayments').innerText = fmt(supplierPays);
+      document.getElementById('repNetCash').innerText = fmt(netCash);
+
+      renderReportCharts(from, to);
+    }
+
+    function renderReportCharts(from, to) {
+      // Chart 1: Expense by category
+      const catMap = {};
+      db.expenses.filter(e => !e.isCancelled && e.date >= from && e.date <= to).forEach(e => {
+        const c = e.category || 'অন্যান্য';
+        catMap[c] = (catMap[c]||0) + (e.amount||0);
+      });
+      const catLabels = Object.keys(catMap);
+      const catData = Object.values(catMap);
+
+      if (charts.expCat) charts.expCat.destroy();
+      const ctx1 = document.getElementById('chartExpenseCategory');
+      if (ctx1) charts.expCat = new Chart(ctx1.getContext('2d'), {
+        type:'doughnut',
+        data: { labels: catLabels.length?catLabels:['খালি'], datasets:[{ data: catData.length?catData:[1], backgroundColor:['#f43f5e','#f97316','#eab308','#a855f7','#06b6d4','#10b981','#8b5cf6','#ec4899'], borderWidth:0 }] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{color:'#94a3b8',font:{family:'Hind Siliguri',size:9}}}} }
+      });
+
+      // Chart 2: Daily trend (last 7 days)
+      const days = [];
+      const dayLabels = [];
+      for (let i=6; i>=0; i--) {
+        const d = new Date(); d.setDate(d.getDate()-i);
+        const ds = d.toISOString().split('T')[0];
+        days.push(ds);
+        dayLabels.push(ds.slice(5));
+      }
+      const dayExp = days.map(d => db.expenses.filter(e => !e.isCancelled && e.date === d).reduce((s,e)=>s+(e.amount||0),0));
+      const dayIn = days.map(d => {
+        let total = 0;
+        db.sales.filter(s => !s.isCancelled && s.date === d).forEach(s => { if (s.paymentMethod !== 'Due') total += (s.totalAmount||0); });
+        db.dues.forEach(due => { if (due.payments) due.payments.forEach(p => { if (p.date === d) total += (p.amount||0); }); });
+        return total;
+      });
+
+      if (charts.daily) charts.daily.destroy();
+      const ctx2 = document.getElementById('chartDailyTrend');
+      if (ctx2) charts.daily = new Chart(ctx2.getContext('2d'), {
+        type:'line',
+        data: { labels: dayLabels, datasets:[
+          { label:'খরচ', data: dayExp, borderColor:'#f43f5e', backgroundColor:'rgba(244,63,94,0.1)', tension:0.3, fill:true },
+          { label:'আয়', data: dayIn, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.1)', tension:0.3, fill:true }
+        ]},
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#94a3b8',font:{family:'Hind Siliguri'}}}}, scales:{x:{ticks:{color:'#94a3b8'},grid:{display:false}},y:{ticks:{color:'#94a3b8'},grid:{color:'#1e293b'}}} }
+      });
+
+      // Chart 3: Cash flow in/out
+      const totalIn = dayIn.reduce((a,b)=>a+b,0);
+      const totalOut = dayExp.reduce((a,b)=>a+b,0);
+      if (charts.cashFlow) charts.cashFlow.destroy();
+      const ctx3 = document.getElementById('chartCashFlow');
+      if (ctx3) charts.cashFlow = new Chart(ctx3.getContext('2d'), {
+        type:'bar',
+        data: { labels:['ইনফ্লো','আউটফ্লো'], datasets:[{ data:[totalIn,totalOut], backgroundColor:['#10b981','#f43f5e'], borderRadius:8 }] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#94a3b8'},grid:{display:false}},y:{ticks:{color:'#94a3b8'},grid:{color:'#1e293b'}}} }
+      });
+    }
+
+    function exportFullReportCSV() {
+      const { from, to } = getReportDateRange();
+      const rows = [['রিপোর্ট সময়কাল', `${from} থেকে ${to}`, '', '']];
+      rows.push(['', '', '', '']);
+      rows.push(['ধরন', 'বিবরণ', 'পরিমাণ', 'তারিখ']);
+      
+      db.expenses.filter(e => !e.isCancelled && e.date >= from && e.date <= to).forEach(e => {
+        rows.push(['খরচ', `${e.name||e.category} - ${e.category}`, e.amount, e.date]);
+      });
+      db.sales.filter(s => !s.isCancelled && s.date >= from && s.date <= to).forEach(s => {
+        rows.push(['বিক্রি', `${s.invoiceId} - ${s.customerName}`, s.totalAmount, s.date]);
+      });
+      db.damages.filter(d => !d.isCancelled && d.date >= from && d.date <= to).forEach(d => {
+        rows.push(['ড্যামেজ', `${d.productName} × ${d.qty}`, -d.lossAmount, d.date]);
+      });
+      
+      const csv = rows.map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+      const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `accounts_report_${todayStr()}.csv`; a.click();
+      toast('✅ CSV ডাউনলোড হয়েছে');
+    }
+
+    function downloadReportPDF() {
+      toast('PDF তৈরি হচ্ছে...','info');
+      const el = document.getElementById('tab-reports');
+      html2pdf().set({
+        margin: 5,
+        filename: `accounts_report_${todayStr()}.pdf`,
+        image: { type:'jpeg', quality:0.95 },
+        html2canvas: { scale:2, useCORS:true, backgroundColor:'#070b14' },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
+      }).from(el).save();
+    }
+
+    function printReport() {
+      window.print();
+    }
+
+    // ============================================================
+    // রশিদ ডাউনলোড/প্রিন্ট
+    // ============================================================
+    function downloadReceipt() {
+      const el = document.getElementById('receiptContent');
+      html2pdf().set({ margin:5, filename:`receipt_${Date.now()}.pdf`, image:{type:'jpeg',quality:0.95}, html2canvas:{scale:2, useCORS:true, backgroundColor:'#ffffff'}, jsPDF:{unit:'mm', format:[100,150]} }).from(el).save();
+      toast('📥 PDF ডাউনলোড হচ্ছে...');
+    }
+
+    function printReceipt() {
+      const content = document.getElementById('receiptContent').innerHTML;
+      const w = window.open('','','width=400,height=600');
+      w.document.write(`<html><head><title>রশিদ</title><style>body{font-family:'Hind Siliguri',sans-serif;padding:20px;}</style></head><body>${content}<script>window.print();<\/script></body></html>`);
+      w.document.close();
+    }
+
+    // ============================================================
+    // সেটিংস
+    // ============================================================
+    function openSettings() {
+      const btn = document.getElementById('btnBnNum');
+      if (db.settings.bengaliNumbers) btn.className = 'w-12 h-6 rounded-full bg-emerald-500 relative active:scale-95 transition';
+      else btn.className = 'w-12 h-6 rounded-full bg-slate-700 relative active:scale-95 transition';
+      const dot = btn.querySelector('span');
+      dot.style.transform = db.settings.bengaliNumbers ? 'translateX(24px)' : 'translateX(0)';
+      openModal('settingsModal');
+    }
+
+    function toggleBengaliNumbers() {
+      db.settings.bengaliNumbers = !db.settings.bengaliNumbers;
+      saveDB();
+      const btn = document.getElementById('btnBnNum');
+      if (db.settings.bengaliNumbers) btn.className = 'w-12 h-6 rounded-full bg-emerald-500 relative active:scale-95 transition';
+      else btn.className = 'w-12 h-6 rounded-full bg-slate-700 relative active:scale-95 transition';
+      const dot = btn.querySelector('span');
+      dot.style.transform = db.settings.bengaliNumbers ? 'translateX(24px)' : 'translateX(0)';
+      renderAll();
+      toast(db.settings.bengaliNumbers?'বাংলা সংখ্যা চালু':'ইংরেজি সংখ্যা চালু','info');
+    }
+
+    function backupData() {
+      const data = {
+        products: db.products, categories: db.categories, sales: db.sales, dues: db.dues,
+        expenses: db.expenses, damages: db.damages, payables: db.payables, cashTx: db.cashTx,
+        capital: db.capital, accounts: db.accounts, expCategories: db.expCategories,
+        settings: db.settings, audit: db.audit, backupDate: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `talha_tech_backup_${todayStr()}.json`; a.click();
+      toast('✅ ব্যাকআপ ডাউনলোড হয়েছে');
+    }
+
+    function restoreData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          confirm('ডেটা রিস্টোর করবেন?', 'বর্তমান ডেটা প্রতিস্থাপিত হবে।', () => {
+            if (data.products) { db.products = data.products; localStorage.setItem(KEYS.products, JSON.stringify(db.products)); }
+            if (data.dues) { db.dues = data.dues; localStorage.setItem(KEYS.dues, JSON.stringify(db.dues)); }
+            if (data.expenses) { db.expenses = data.expenses; localStorage.setItem(KEYS.expenses, JSON.stringify(db.expenses)); }
+            if (data.damages) { db.damages = data.damages; localStorage.setItem(KEYS.damages, JSON.stringify(db.damages)); }
+            if (data.payables) { db.payables = data.payables; localStorage.setItem(KEYS.payables, JSON.stringify(db.payables)); }
+            if (data.cashTx) { db.cashTx = data.cashTx; localStorage.setItem(KEYS.cashTx, JSON.stringify(db.cashTx)); }
+            if (data.capital) { db.capital = data.capital; localStorage.setItem(KEYS.capital, JSON.stringify(db.capital)); }
+            if (data.accounts) { db.accounts = data.accounts; localStorage.setItem(KEYS.accounts, JSON.stringify(db.accounts)); }
+            if (data.expCategories) { db.expCategories = data.expCategories; localStorage.setItem(KEYS.expCategories, JSON.stringify(db.expCategories)); }
+            saveDB();
+            renderAll();
+            toast('✅ ডেটা রিস্টোর হয়েছে');
+          });
+        } catch (err) {
+          toast('❌ ভুল ফাইল ফরম্যাট','error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function showAuditLog() {
+      const list = document.getElementById('auditList');
+      const logs = db.audit.slice(-50).reverse();
+      if (!logs.length) { list.innerHTML = '<p class="text-center text-slate-500 text-xs py-6">কোনো লগ নেই</p>'; }
+      else {
+        list.innerHTML = logs.map(l => `
+          <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-[10px]">
+            <div class="flex justify-between">
+              <span class="font-bold text-cyan-400">${escapeHtml(l.action)}</span>
+              <span class="text-slate-500">${l.date} ${l.time||''}</span>
+            </div>
+            <p class="text-slate-400 mt-1">${escapeHtml(JSON.stringify(l.details))}</p>
+          </div>
+        `).join('');
+      }
+      openModal('auditModal');
+    }
+
+    // ============================================================
+    // গুগল শিট সিঙ্ক
+    // ============================================================
+    function fetchLiveData(manual) {
+      const btn = document.getElementById('btnSync');
+      const txt = document.getElementById('syncText');
+      const pulse = document.getElementById('syncPulse');
+      if (btn) btn.innerHTML = '<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> সিঙ্ক';
+      if (txt) txt.innerText = 'সিঙ্ক...';
+      if (pulse) pulse.className = 'w-2 h-2 rounded-full bg-amber-400 pulse-dot';
+      lucide.createIcons();
+
+      const cb = 'gs_'+Date.now();
+      const s = document.createElement('script');
+      let done = false;
+      const cleanup = () => { delete window[cb]; if (s.parentNode) s.parentNode.removeChild(s); };
+      window[cb] = (data) => {
+        if (done) return; done = true; cleanup();
+        if (data && data.status === 'success') {
+          if (Array.isArray(data.products)) {
+            db.products = data.products;
+            localStorage.setItem(KEYS.products, JSON.stringify(db.products));
+          }
+          if (Array.isArray(data.sales)) { db.sales = data.sales; localStorage.setItem(KEYS.sales, JSON.stringify(db.sales)); }
+          if (Array.isArray(data.dues)) { db.dues = data.dues.map(d => ({...d, paidAmount: d.paidAmount !== undefined ? d.paidAmount : (d.isPaid?d.amount:0), payments: d.payments||[]})); localStorage.setItem(KEYS.dues, JSON.stringify(db.dues)); }
+          if (Array.isArray(data.expenses)) { db.expenses = data.expenses; localStorage.setItem(KEYS.expenses, JSON.stringify(db.expenses)); }
+          if (Array.isArray(data.damages)) { db.damages = data.damages; localStorage.setItem(KEYS.damages, JSON.stringify(db.damages)); }
+          if (txt) txt.innerText = 'লাইভ';
+          if (pulse) pulse.className = 'w-2 h-2 rounded-full bg-emerald-400';
+          renderAll();
+          if (manual) toast('✅ ডেটা লোড হয়েছে');
+        }
+        if (btn) btn.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>সিঙ্ক</span>';
+        lucide.createIcons();
+      };
+      s.onerror = () => {
+        if (done) return; done = true; cleanup();
+        if (btn) btn.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-400"></span><span>অফলাইন</span>';
+        if (txt) txt.innerText = 'সিঙ্ক';
+        if (pulse) pulse.className = 'w-2 h-2 rounded-full bg-rose-400';
+        lucide.createIcons();
+      };
+      s.src = `${GOOGLE_SCRIPT_URL}?callback=${cb}`;
+      document.body.appendChild(s);
+      setTimeout(() => { if (!done) { done = true; cleanup(); } }, 6000);
+    }
+
+    // ============================================================
+    // সব রেন্ডার
+    // ============================================================
+    function renderAll() {
+      renderDashboard();
+      updateExpenseStats();
+      renderExpenses();
+      renderDamages();
+      renderReceivables();
+      renderPayables();
+      renderCashbook();
+      renderReports();
+    }
+
+    // ============================================================
+    // ইনিশিয়ালাইজ
+    // ============================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadDB();
+      switchTab('home');
+      setTimeout(() => fetchLiveData(false), 800);
+      lucide.createIcons();
+    });
+
+    // বাইরে ক্লিক মডাল বন্ধ
+    document.addEventListener('click', (e) => {
+      ['expenseModal','receivableModal','collectionModal','payableModal','supplierPaymentModal','damageModal','transferModal','capitalModal','accountModal','settingsModal','auditModal','receiptModal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.classList.contains('hidden') && e.target === el) closeModal(id);
+      });
+    });
+  </script>
+</body>
+</html>
