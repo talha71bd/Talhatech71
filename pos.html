@@ -35,11 +35,6 @@
     }
     .animate-pop { animation: pop 0.25s ease-out; }
     
-    @keyframes cartBounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-3px); }
-    }
-    
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button {
       -webkit-appearance: none;
@@ -53,7 +48,6 @@
       -webkit-backdrop-filter: blur(20px);
     }
 
-    /* বটম নেভিগেশন বারের জন্য প্যাডিং */
     body { padding-bottom: 75px; }
     
     @media print {
@@ -98,7 +92,6 @@
         </div>
       </div>
       
-      <!-- আজকের সামারি -->
       <div class="grid grid-cols-4 gap-1.5 mt-3">
         <div class="bg-slate-950/60 rounded-xl p-2 border border-slate-800/80">
           <p class="text-[9px] text-slate-500 font-bold">আজকের বিক্রি</p>
@@ -123,7 +116,6 @@
   <!-- ================= মূল কন্টেন্ট ================= -->
   <main class="max-w-md mx-auto p-3.5 pb-36 space-y-3.5">
     
-    <!-- কাস্টমার ইনফো -->
     <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3 shadow-sm">
       <div class="flex items-center justify-between mb-2">
         <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
@@ -140,7 +132,6 @@
       </div>
     </section>
 
-    <!-- সার্চ ও ফিল্টার -->
     <section class="sticky top-32 z-20 space-y-2">
       <div class="relative">
         <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
@@ -157,14 +148,12 @@
       </div>
     </section>
 
-    <!-- প্রোডাক্ট গ্রিড -->
     <section>
       <div id="productsGrid" class="grid grid-cols-2 gap-2"></div>
     </section>
 
   </main>
 
-  <!-- ================= ফ্লোটিং কার্ট বার (নেভিগেশন বারের উপরে সেট করা) ================= -->
   <div id="cartBar" class="hidden fixed bottom-16 left-0 right-0 z-30 max-w-md mx-auto px-3.5 pb-2 pointer-events-none">
     <button onclick="openCartSheet()" class="w-full pointer-events-auto bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 text-slate-950 rounded-2xl p-3.5 shadow-2xl shadow-cyan-600/40 flex items-center justify-between active:scale-98 transition">
       <div class="flex items-center gap-2.5">
@@ -187,7 +176,6 @@
     </button>
   </div>
 
-  <!-- ================= কার্ট বটম শিট ================= -->
   <div id="cartSheet" class="hidden fixed inset-0 z-50">
     <div class="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" onclick="closeCartSheet()"></div>
     <div class="absolute bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-900 rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col animate-slide-up border-t border-slate-700">
@@ -241,7 +229,6 @@
     </div>
   </div>
 
-  <!-- ================= চেকআউট মডাল ================= -->
   <div id="checkoutModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
     <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
       <div class="p-4 border-b border-slate-800 flex justify-between items-center">
@@ -330,7 +317,6 @@
     </div>
   </div>
 
-  <!-- ================= ইনভয়েস মডাল ================= -->
   <div id="invoiceModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-2 overflow-y-auto">
     <div class="max-w-3xl mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
       <div class="no-print p-3 border-b border-slate-800 flex flex-wrap gap-1.5 justify-between items-center bg-slate-900/95 rounded-t-3xl sticky top-0 z-10">
@@ -364,7 +350,6 @@
     </div>
   </div>
 
-  <!-- ================= Hold সেলস মডাল ================= -->
   <div id="holdModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
     <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
       <div class="p-4 border-b border-slate-800 flex justify-between items-center">
@@ -389,7 +374,6 @@
     </div>
   </div>
 
-  <!-- ================= কাস্টম আইটেম মডাল ================= -->
   <div id="customItemModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
     <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
       <div class="p-4 border-b border-slate-800 flex justify-between items-center">
@@ -427,7 +411,6 @@
     </div>
   </div>
 
-  <!-- ================= রিসেন্ট সেলস মডাল ================= -->
   <div id="recentSalesModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
     <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
       <div class="p-4 border-b border-slate-800 flex justify-between items-center">
@@ -442,13 +425,11 @@
     </div>
   </div>
 
-  <!-- ================= টোস্ট ================= -->
   <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 opacity-0 pointer-events-none">
     <i data-lucide="check-circle-2" class="w-4 h-4" id="toastIcon"></i>
     <span id="toastMsg">সফল!</span>
   </div>
 
-  <!-- ================= কনফার্ম মডাল ================= -->
   <div id="confirmModal" class="hidden fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm p-3 flex items-center justify-center">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-4 shadow-2xl space-y-3 animate-slide-up">
       <div class="text-center">
@@ -465,14 +446,12 @@
     </div>
   </div>
 
-  <!-- ================= ইউনিভার্সাল বটম নেভিগেশন বার ================= -->
   <nav class="fixed bottom-0 left-0 right-0 glassmorphic border-t border-slate-800 z-40">
     <div class="max-w-md mx-auto grid grid-cols-7 text-center py-2 px-1">
       <a href="index.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
         <i data-lucide="home" class="w-5 h-5"></i>
         <span class="text-[9px] font-bold">হোম</span>
       </a>
-      <!-- এই পেজটি একটিভ (বিক্রি / POS) -->
       <a href="pos.html" class="flex flex-col items-center gap-0.5 text-cyan-400 transition active:scale-95">
         <i data-lucide="shopping-cart" class="w-5 h-5"></i>
         <span class="text-[9px] font-bold">বিক্রি</span>
@@ -501,9 +480,6 @@
   </nav>
 
   <script>
-    // ============================================================
-    // 🔧 কনফিগারেশন
-    // ============================================================
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyqJOsL_DK29otfshT_RBZjbgj0_OCxCsKt1I9rKtZauz64o3YEB2boYhzs7WxNX30m/exec";
     const STORAGE = {
       products: 'tt_master_products',
@@ -518,9 +494,6 @@
       recentCustomers: 'tt_recent_customers'
     };
 
-    // ============================================================
-    // 💾 স্টেট
-    // ============================================================
     let db = { products: [], categories: [], sales: [], dues: [] };
     let cart = [];
     let heldSales = [];
@@ -533,9 +506,6 @@
     let confirmCallback = null;
     let currentInvoiceTab = 'a4';
 
-    // ============================================================
-    // 🛠️ ইউটিলিটি
-    // ============================================================
     function fmt(n) { return '৳ ' + Math.round(Number(n) || 0).toLocaleString('en-IN'); }
     function todayStr() { return new Date().toISOString().split('T')[0]; }
     function nowTime() { return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); }
@@ -582,9 +552,6 @@
     function closeConfirm() { document.getElementById('confirmModal').classList.add('hidden'); confirmCallback = null; }
     function confirmAction() { if (confirmCallback) confirmCallback(); closeConfirm(); }
 
-    // ============================================================
-    // 💾 ডাটা লোড / সেভ
-    // ============================================================
     function loadDB() {
       try {
         const p = localStorage.getItem(STORAGE.products);
@@ -642,9 +609,6 @@
       localStorage.setItem(STORAGE.recentCustomers, JSON.stringify(recentCustomers.slice(0, 20)));
     }
 
-    // ============================================================
-    // ☁️ গুগল শিট সিঙ্ক
-    // ============================================================
     function syncToSheet(action, payload) {
       if (!GOOGLE_SCRIPT_URL) return;
       fetch(GOOGLE_SCRIPT_URL, {
@@ -689,9 +653,6 @@
       setTimeout(() => { if (!done) { done = true; cleanup(); } }, 5000);
     }
 
-    // ============================================================
-    // 🎨 রেন্ডার
-    // ============================================================
     function renderAll() {
       renderCategoryChips();
       filterProducts();
@@ -775,9 +736,16 @@
             
             <div class="flex items-center justify-between mt-2">
               <span class="text-sm font-black ${isOut ? 'text-slate-600' : 'text-cyan-400'}">${fmt(p.sellPrice)}</span>
-              <span class="w-6 h-6 rounded-lg ${isOut ? 'bg-slate-800 text-slate-600' : 'bg-cyan-500 text-slate-950'} flex items-center justify-center">
-                <i data-lucide="${isOut ? 'x' : 'plus'}" class="w-3.5 h-3.5"></i>
-              </span>
+              <div class="flex items-center gap-1">
+                ${isOut ? '' : `
+                <button onclick="event.stopPropagation(); addToCartWithCustomPrice('${p.id}')" title="কাস্টম দরে বিক্রি"
+                  class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 flex items-center justify-center active:scale-90 transition">
+                  <i data-lucide="pencil" class="w-3 h-3"></i>
+                </button>`}
+                <span class="w-6 h-6 rounded-lg ${isOut ? 'bg-slate-800 text-slate-600' : 'bg-cyan-500 text-slate-950'} flex items-center justify-center">
+                  <i data-lucide="${isOut ? 'x' : 'plus'}" class="w-3.5 h-3.5"></i>
+                </span>
+              </div>
             </div>
           </div>
         `;
@@ -785,12 +753,10 @@
       lucide.createIcons();
     }
 
-    // ============================================================
-    // 🛒 কার্ট অপারেশন
-    // ============================================================
-    function addToCart(productId, customQty = 1) {
+    // 🛒 কার্টে যোগ — custom price সাপোর্ট সহ
+    function addToCart(productId, customQty = 1, customPrice = null) {
       const p = db.products.find(x => x.id === productId);
-      if (!p) return;
+      if (!p) return false;
 
       const existing = cart.find(c => c.productId === productId);
       const currentQtyInCart = existing ? existing.qty : 0;
@@ -798,18 +764,19 @@
 
       if (newQty > p.qty) {
         showToast(`❌ "${p.name}" এর স্টক শেষ! মাত্র ${p.qty} পিস আছে`, 'error');
-        return;
+        return false;
       }
 
       if (existing) {
         existing.qty = newQty;
+        if (customPrice !== null) existing.unitPrice = customPrice;
       } else {
         cart.push({
           productId: p.id,
           name: p.name,
           category: p.category,
           buyPrice: p.buyPrice,
-          unitPrice: p.sellPrice,
+          unitPrice: (customPrice !== null ? customPrice : p.sellPrice),
           qty: customQty,
           notes: ''
         });
@@ -820,6 +787,34 @@
       renderCart();
       filterProducts();
       showToast(`✅ "${p.name}" কার্টে যোগ হয়েছে`, 'success');
+      return true;
+    }
+
+    // ✏️ কাস্টম দরে যোগ — নির্ধারিত দামের কম/বেশি যেকোনো দর চলবে
+    function addToCartWithCustomPrice(productId) {
+      const p = db.products.find(x => x.id === productId);
+      if (!p) return;
+
+      const input = prompt(
+        `"${p.name}"\n\nনির্ধারিত বিক্রয় দর: ৳${p.sellPrice}\nকেনা দর: ৳${p.buyPrice}\n\nনতুন বিক্রয় দর লিখুন (কম/বেশি যেকোনো দর দেওয়া যাবে):`,
+        p.sellPrice
+      );
+      if (input === null) return;
+
+      const price = parseFloat(input);
+      if (isNaN(price) || price < 0) {
+        showToast('❌ সঠিক দর লিখুন', 'error');
+        return;
+      }
+
+      const ok = addToCart(productId, 1, price);
+      if (!ok) return;
+
+      if (price < p.buyPrice) {
+        showToast('⚠️ কেনা দামের নিচে বিক্রি হচ্ছে (লস)', 'error');
+      } else if (price < p.sellPrice) {
+        showToast(`✅ ৳${price} দরে যোগ হয়েছে (নির্ধারিত ৳${p.sellPrice})`, 'success');
+      }
     }
 
     function updateCartQty(idx, newQty) {
@@ -842,12 +837,65 @@
       filterProducts();
     }
 
-    function updateCartPrice(idx, newPrice) {
+    // 💰 কার্টের দাম আপডেট — রিয়েল-টাইম, ইনপুট ফোকাস নষ্ট না করে
+    function updateCartPrice(idx, newPrice, inputEl) {
       const item = cart[idx];
       if (!item) return;
-      item.unitPrice = Math.max(0, parseFloat(newPrice) || 0);
+      if (String(newPrice).trim() === '') return;
+
+      const val = parseFloat(newPrice);
+      item.unitPrice = isNaN(val) ? 0 : Math.max(0, val); // ✅ যেকোনো দর গ্রহণ
       saveCartStorage();
-      renderCart();
+
+      const totalEl = document.getElementById('cartRowTotal_' + idx);
+      if (totalEl) totalEl.innerText = fmt(item.unitPrice * item.qty);
+
+      const isLoss = item.unitPrice < item.buyPrice;
+      const warnEl = document.getElementById('cartRowWarn_' + idx);
+      if (warnEl) warnEl.classList.toggle('hidden', !isLoss);
+
+      if (inputEl) {
+        inputEl.classList.toggle('border-rose-500/70', isLoss);
+        inputEl.classList.toggle('border-slate-700', !isLoss);
+      }
+
+      refreshCartSummary();
+    }
+
+    function refreshCartSummary() {
+      if (cart.length === 0) return;
+      const totals = getCartTotals();
+      const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+
+      document.getElementById('cartBarBadge').innerText = totalQty;
+      document.getElementById('cartBarItems').innerText = `${cart.length} ধরনের • ${totalQty} পিস`;
+      document.getElementById('cartBarTotal').innerText = fmt(totals.grandTotal);
+      document.getElementById('cartHeaderItems').innerText = `${cart.length} টি আইটেম • ${totalQty} পিস`;
+      document.getElementById('cartSubtotal').innerText = fmt(totals.subtotal);
+
+      const discRow = document.getElementById('cartDiscountRow');
+      if (totals.discountAmt > 0) {
+        discRow.style.display = 'flex';
+        document.getElementById('cartDiscountAmt').innerText = '-' + fmt(totals.discountAmt);
+      } else {
+        discRow.style.display = 'none';
+      }
+
+      const delRow = document.getElementById('cartDeliveryRow');
+      if (cartDelivery > 0) {
+        delRow.style.display = 'flex';
+        document.getElementById('cartDeliveryAmt').innerText = fmt(cartDelivery);
+      } else {
+        delRow.style.display = 'none';
+      }
+
+      document.getElementById('cartGrandTotal').innerText = fmt(totals.grandTotal);
+
+      const checkoutModal = document.getElementById('checkoutModal');
+      if (checkoutModal && !checkoutModal.classList.contains('hidden')) {
+        document.getElementById('checkoutTotal').innerText = fmt(totals.grandTotal);
+        updateChange();
+      }
     }
 
     function removeFromCart(idx) {
@@ -887,7 +935,6 @@
     function renderCart() {
       const cartBar = document.getElementById('cartBar');
       const cartItemsList = document.getElementById('cartItemsList');
-      const totals = getCartTotals();
 
       if (cart.length === 0) {
         cartBar.classList.add('hidden');
@@ -900,23 +947,20 @@
         document.getElementById('cartSubtotal').innerText = '৳ ০';
         document.getElementById('cartGrandTotal').innerText = '৳ ০';
         document.getElementById('cartHeaderItems').innerText = '০ টি আইটেম';
+        document.getElementById('cartDiscountRow').style.display = 'none';
+        document.getElementById('cartDeliveryRow').style.display = 'none';
         lucide.createIcons();
         return;
       }
 
       cartBar.classList.remove('hidden');
-      const totalQty = cart.reduce((s, i) => s + i.qty, 0);
-      document.getElementById('cartBarBadge').innerText = totalQty;
-      document.getElementById('cartBarItems').innerText = `${cart.length} ধরনের • ${totalQty} পিস`;
-      document.getElementById('cartBarTotal').innerText = fmt(totals.grandTotal);
-
-      document.getElementById('cartHeaderItems').innerText = `${cart.length} টি আইটেম • ${totalQty} পিস`;
 
       cartItemsList.innerHTML = cart.map((item, idx) => {
         const p = db.products.find(x => x.id === item.productId);
         const maxQty = p ? p.qty : 999;
         const itemTotal = item.unitPrice * item.qty;
         const isAtMax = item.qty >= maxQty;
+        const isLoss = item.unitPrice < item.buyPrice;
 
         return `
           <div class="p-2.5 rounded-2xl bg-slate-950 border border-slate-800/90 space-y-2 animate-fade-in">
@@ -938,33 +982,19 @@
               </div>
               <div class="flex items-center gap-1">
                 <span class="text-[10px] text-slate-500">৳</span>
-                <input type="number" value="${item.unitPrice}" onchange="updateCartPrice(${idx}, this.value)" class="w-14 h-7 text-center bg-slate-900 border border-slate-700 rounded-lg text-xs font-black text-cyan-400 outline-none focus:border-cyan-400">
+                <input type="number" step="any" inputmode="decimal" value="${item.unitPrice}"
+                  onfocus="this.select()"
+                  oninput="updateCartPrice(${idx}, this.value, this)"
+                  class="w-16 h-7 text-center bg-slate-900 border ${isLoss ? 'border-rose-500/70' : 'border-slate-700'} rounded-lg text-xs font-black text-cyan-400 outline-none focus:border-cyan-400">
               </div>
-              <span class="text-sm font-black text-emerald-400 min-w-[60px] text-right">${fmt(itemTotal)}</span>
+              <span id="cartRowTotal_${idx}" class="text-sm font-black text-emerald-400 min-w-[60px] text-right">${fmt(itemTotal)}</span>
             </div>
+            <p id="cartRowWarn_${idx}" class="${isLoss ? '' : 'hidden'} text-[9px] text-rose-400 font-bold text-right">⚠️ কেনা দামের নিচে বিক্রি (লস)</p>
           </div>
         `;
       }).join('');
 
-      document.getElementById('cartSubtotal').innerText = fmt(totals.subtotal);
-      
-      const discRow = document.getElementById('cartDiscountRow');
-      if (totals.discountAmt > 0) {
-        discRow.style.display = 'flex';
-        document.getElementById('cartDiscountAmt').innerText = '-' + fmt(totals.discountAmt);
-      } else {
-        discRow.style.display = 'none';
-      }
-      
-      const delRow = document.getElementById('cartDeliveryRow');
-      if (cartDelivery > 0) {
-        delRow.style.display = 'flex';
-        document.getElementById('cartDeliveryAmt').innerText = fmt(cartDelivery);
-      } else {
-        delRow.style.display = 'none';
-      }
-      
-      document.getElementById('cartGrandTotal').innerText = fmt(totals.grandTotal);
+      refreshCartSummary();
       lucide.createIcons();
     }
 
@@ -978,9 +1008,6 @@
       document.body.style.overflow = '';
     }
 
-    // ============================================================
-    // 👤 কাস্টমার সাজেশন
-    // ============================================================
     function suggestCustomer(query) {
       const box = document.getElementById('custSuggest');
       if (!query || !query.trim()) { box.classList.add('hidden'); return; }
@@ -1022,9 +1049,6 @@
       saveRecentCustomers();
     }
 
-    // ============================================================
-    // 💳 চেকআউট
-    // ============================================================
     function openCheckout() {
       if (cart.length === 0) { showToast('কার্ট খালি', 'error'); return; }
       closeCartSheet();
@@ -1103,7 +1127,7 @@
       const totals = getCartTotals();
       document.getElementById('checkoutTotal').innerText = fmt(totals.grandTotal);
       updateChange();
-      renderCart();
+      refreshCartSummary();
     }
 
     function confirmSale() {
@@ -1193,9 +1217,6 @@
       vibrate(50);
     }
 
-    // ============================================================
-    // 🧾 ইনভয়েস জেনারেশন
-    // ============================================================
     function showInvoice(sale) {
       currentSaleForInvoice = sale;
       renderInvoiceA4(sale);
@@ -1396,13 +1417,12 @@
     function downloadInvoicePDF() {
       const el = getActiveInvoiceEl();
       const name = currentSaleForInvoice ? currentSaleForInvoice.invoiceId : 'invoice';
-      const orientation = currentInvoiceTab === 'thermal' ? 'portrait' : 'portrait';
       html2pdf().set({
         margin: 0,
         filename: `TalhaTech_${name}_${currentInvoiceTab}.pdf`,
         image: { type: 'jpeg', quality: 1 },
         html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-        jsPDF: { unit: 'mm', format: currentInvoiceTab === 'a4' ? 'a4' : [80, 297], orientation }
+        jsPDF: { unit: 'mm', format: currentInvoiceTab === 'a4' ? 'a4' : [80, 297], orientation: 'portrait' }
       }).from(el).save();
       showToast('📥 PDF ডাউনলোড হচ্ছে...', 'info');
     }
@@ -1444,9 +1464,6 @@
       }
     }
 
-    // ============================================================
-    // ⏸️ Hold Sale
-    // ============================================================
     function openHoldModal() {
       renderHeldList();
       document.getElementById('holdModal').classList.remove('hidden');
@@ -1560,9 +1577,6 @@
       }
     }
 
-    // ============================================================
-    // ✨ কাস্টম আইটেম
-    // ============================================================
     function toggleCustomItem() {
       document.getElementById('customItemModal').classList.toggle('hidden');
       document.body.style.overflow = document.getElementById('customItemModal').classList.contains('hidden') ? '' : 'hidden';
@@ -1604,9 +1618,6 @@
       showToast(`✅ "${name}" কার্টে যোগ হয়েছে`, 'success');
     }
 
-    // ============================================================
-    // 📊 আজকের সামারি
-    // ============================================================
     function updateTodayStats() {
       const today = todayStr();
       const todaySales = db.sales.filter(s => s.date === today);
@@ -1620,9 +1631,6 @@
       document.getElementById('todayDue').innerText = fmt(dueAmount);
     }
 
-    // ============================================================
-    // 🕐 রিসেন্ট সেলস
-    // ============================================================
     function openRecentSales() {
       const list = document.getElementById('recentSalesList');
       const today = todayStr();
@@ -1663,14 +1671,10 @@
       setTimeout(() => showInvoice(sale), 200);
     }
 
-    // ============================================================
-    // 🚀 ইনিশিয়ালাইজ
-    // ============================================================
     window.addEventListener('DOMContentLoaded', () => {
       loadDB();
       renderAll();
 
-      document.getElementById('custName').addEventListener('input', () => {});
       document.getElementById('custPhone').addEventListener('input', saveCustomerStorage);
 
       setTimeout(fetchLiveProducts, 800);

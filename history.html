@@ -24,9 +24,8 @@
     input[type="number"] { -moz-appearance: textfield; }
     .glass { background: rgba(15,23,42,0.85); backdrop-filter: blur(20px); }
     @media print { body * { visibility: hidden; } #printInvoice, #printInvoice * { visibility: visible; } #printInvoice { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; } .no-print { display: none !important; } }
-    
-    /* বটম নেভিগেশনের জন্য বডিতে প্যাডিং */
     body { padding-bottom: 75px; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   </style>
 </head>
 <body class="bg-[#070b14] text-slate-100 antialiased select-none text-sm min-h-screen">
@@ -61,7 +60,6 @@
 
   <main class="max-w-2xl mx-auto p-3.5 pb-32 space-y-3.5">
 
-    <!-- সামারি কার্ড -->
     <section class="grid grid-cols-2 gap-2">
       <div class="bg-gradient-to-br from-cyan-950/60 to-slate-900 border border-cyan-500/30 rounded-2xl p-3">
         <div class="flex items-center gap-1.5 mb-1">
@@ -97,7 +95,6 @@
       </div>
     </section>
 
-    <!-- চার্ট -->
     <section class="grid grid-cols-2 gap-2">
       <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
         <div class="flex justify-between items-center mb-1">
@@ -117,7 +114,6 @@
       </div>
     </section>
 
-    <!-- টপ প্রোডাক্ট ও কাস্টমার -->
     <section class="grid grid-cols-2 gap-2">
       <div class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3">
         <div class="flex justify-between items-center mb-2">
@@ -139,7 +135,6 @@
       </div>
     </section>
 
-    <!-- ফিল্টার প্যানেল -->
     <section class="bg-slate-900/95 border border-slate-800/90 rounded-2xl p-3 space-y-2">
       <div class="flex justify-between items-center">
         <span class="text-xs font-black text-white flex items-center gap-1.5">
@@ -152,7 +147,7 @@
 
       <div class="relative">
         <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-        <input type="text" id="searchInput" oninput="onSearchInput()" placeholder="মেমো, কাস্টমার, ফোন..." class="w-full text-sm bg-slate-950 border-2 border-slate-800 rounded-xl pl-10 pr-3 py-2.5 text-white outline-none focus:border-cyan-400 font-medium">
+        <input type="text" id="searchInput" oninput="onSearchInput()" placeholder="মেমো, কাস্টমার, ফোন, প্রোডাক্ট..." class="w-full text-sm bg-slate-950 border-2 border-slate-800 rounded-xl pl-10 pr-3 py-2.5 text-white outline-none focus:border-cyan-400 font-medium">
       </div>
 
       <div class="grid grid-cols-2 gap-2">
@@ -179,6 +174,7 @@
           <option value="paid">পরিশোধিত</option>
           <option value="due">বাকি</option>
           <option value="returned">রিটার্ন</option>
+          <option value="cancelled">বাতিল</option>
         </select>
       </div>
 
@@ -215,7 +211,6 @@
       </div>
     </section>
 
-    <!-- বাল্ক বার -->
     <div id="bulkBar" class="hidden bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-2.5 flex items-center justify-between shadow-lg">
       <div class="flex items-center gap-2">
         <span class="bg-white/20 text-white text-xs font-black px-2 py-1 rounded-lg" id="selectedCount">০</span>
@@ -231,10 +226,8 @@
       </div>
     </div>
 
-    <!-- লিস্ট -->
     <section id="salesContainer" class="space-y-2"></section>
 
-    <!-- লোড মোর -->
     <div id="loadMoreWrap" class="hidden">
       <button onclick="loadMore()" class="w-full bg-slate-800 hover:bg-slate-700 text-cyan-300 font-black py-3 rounded-2xl text-xs active:scale-95 transition">
         <i data-lucide="chevron-down" class="w-4 h-4 inline"></i> আরও দেখুন
@@ -243,7 +236,6 @@
 
   </main>
 
-  <!-- ============== ইনভয়েস মডাল ============== -->
   <div id="invoiceModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-2 overflow-y-auto">
     <div class="max-w-3xl mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
       <div class="no-print p-2.5 border-b border-slate-800 flex flex-wrap gap-1.5 justify-between items-center sticky top-0 bg-slate-900/95 rounded-t-3xl z-10">
@@ -279,7 +271,6 @@
     </div>
   </div>
 
-  <!-- ============== কাস্টমার মডাল ============== -->
   <div id="customerModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
     <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
       <div class="p-4 border-b border-slate-800 flex justify-between items-center">
@@ -292,7 +283,6 @@
     </div>
   </div>
 
-  <!-- ============== রিটার্ন মডাল ============== -->
   <div id="returnModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
     <div class="max-w-md mx-auto my-auto bg-slate-900 border border-rose-500/40 rounded-3xl shadow-2xl animate-slide-up">
       <div class="p-4 border-b border-rose-500/30 flex justify-between items-center">
@@ -330,7 +320,54 @@
     </div>
   </div>
 
-  <!-- ============== ডিটেইল মডাল ============== -->
+  <!-- ============== বাতিল মডাল ============== -->
+  <div id="cancelModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="max-w-md mx-auto my-auto bg-slate-900 border border-orange-500/40 rounded-3xl shadow-2xl animate-slide-up">
+      <div class="p-4 border-b border-orange-500/30 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white flex items-center gap-2">
+          <i data-lucide="x-circle" class="w-4 h-4 text-orange-400"></i> বিক্রি বাতিল করুন
+        </h3>
+        <button onclick="closeModal('cancelModal')" class="text-rose-400 p-1 active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <div class="bg-orange-950/40 border border-orange-500/40 rounded-xl p-3 text-center">
+          <i data-lucide="alert-triangle" class="w-10 h-10 text-orange-400 mx-auto mb-2"></i>
+          <p class="text-xs text-orange-200 font-bold">এই বিক্রিটি বাতিল হিসেবে চিহ্নিত হবে</p>
+          <p class="text-[10px] text-orange-300/80 mt-1">স্টক ফেরত যাবে, হিসাব থেকে বাদ যাবে (রেকর্ড থাকবে)</p>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl">
+          <p class="text-xs text-slate-400">মেমো: <b class="text-white font-mono" id="cancelInvoiceId">--</b></p>
+          <p class="text-xs text-slate-400 mt-1">কাস্টমার: <b class="text-white" id="cancelCustomer">--</b></p>
+          <p class="text-xs text-slate-400 mt-1">মোট: <b class="text-orange-400 text-base" id="cancelAmount">৳০</b></p>
+          <div id="cancelProductList" class="mt-2 pt-2 border-t border-slate-800 space-y-1"></div>
+        </div>
+        <label class="flex items-center gap-2 bg-slate-950 border border-slate-800 p-3 rounded-xl cursor-pointer active:scale-99">
+          <input type="checkbox" id="restoreStockCancel" checked class="w-4 h-4 accent-emerald-500">
+          <span class="text-xs text-slate-300 font-bold">স্টকে ফেরত যোগ করুন</span>
+        </label>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 mb-1 block">কারণ</label>
+          <select id="cancelReason" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none focus:border-orange-400">
+            <option>ভুলে এন্ট্রি দেওয়া হয়েছে</option>
+            <option>টেস্ট এন্ট্রি</option>
+            <option>ডুপ্লিকেট এন্ট্রি</option>
+            <option>ভুল কাস্টমার/পণ্য</option>
+            <option>অন্য কারণ</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="closeModal('cancelModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition">ফিরে যান</button>
+          <button onclick="confirmCancel()" class="bg-orange-600 hover:bg-orange-500 text-white font-black py-2.5 rounded-xl text-xs flex justify-center items-center gap-1 active:scale-95 transition">
+            <i data-lucide="x-circle" class="w-4 h-4"></i> বাতিল করুন
+          </button>
+        </div>
+        <button onclick="confirmDelete()" class="w-full bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 font-bold py-2 rounded-xl text-[10px] border border-rose-500/30 active:scale-95 transition flex items-center justify-center gap-1">
+          <i data-lucide="trash-2" class="w-3 h-3"></i> সম্পূর্ণ ডিলিট করুন (রেকর্ড থাকবে না)
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="detailModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm p-3 overflow-y-auto">
     <div class="max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl animate-slide-up">
       <div class="p-4 border-b border-slate-800 flex justify-between items-center">
@@ -343,7 +380,6 @@
     </div>
   </div>
 
-  <!-- ============== কনফার্ম মডাল ============== -->
   <div id="confirmModal" class="hidden fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm p-3 flex items-center justify-center">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-4 shadow-2xl space-y-3 animate-slide-up">
       <div class="text-center">
@@ -360,13 +396,11 @@
     </div>
   </div>
 
-  <!-- ============== টোস্ট ============== -->
   <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-[70] px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-2 transition-all duration-300 opacity-0 pointer-events-none">
     <i data-lucide="check-circle-2" class="w-4 h-4" id="toastIcon"></i>
     <span id="toastMsg">সফল!</span>
   </div>
 
-  <!-- ================= ইউনিভার্সাল বটম নেভিগেশন বার ================= -->
   <nav class="fixed bottom-0 left-0 right-0 glass border-t border-slate-800 z-50">
     <div class="max-w-3xl mx-auto grid grid-cols-7 text-center py-2 px-1">
       <a href="index.html" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition active:scale-95">
@@ -389,7 +423,6 @@
         <i data-lucide="receipt" class="w-5 h-5"></i>
         <span class="text-[9px] font-bold">খরচ/হিসাব</span>
       </a>
-      <!-- এই পেজটি একটিভ -->
       <a href="history.html" class="flex flex-col items-center gap-0.5 text-cyan-400 transition active:scale-95">
         <i data-lucide="history" class="w-5 h-5"></i>
         <span class="text-[9px] font-bold">হিস্ট্রি</span>
@@ -424,9 +457,6 @@
     let confirmCallback = null;
     let currentInvoice = null;
 
-    // ============================================================
-    // ইউটিলিটি
-    // ============================================================
     const fmt = n => '৳' + Math.round(Number(n)||0).toLocaleString('en-IN');
     const todayStr = () => new Date().toISOString().split('T')[0];
     const escapeHtml = s => String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -443,9 +473,7 @@
       })) : [{ name:'পণ্য বিক্রি', unitPrice: Number(s.totalAmount)||0, qty:1, buyPrice:0, category:'' }];
 
       let totalAmount = Number(s.totalAmount)||0;
-      if (totalAmount <= 0) {
-        totalAmount = items.reduce((sum, it) => sum + (it.unitPrice * it.qty), 0);
-      }
+      if (totalAmount <= 0) totalAmount = items.reduce((sum, it) => sum + (it.unitPrice * it.qty), 0);
 
       return {
         invoiceId: s.invoiceId || 'TT-UNKNOWN',
@@ -465,15 +493,15 @@
         time: s.time || '',
         notes: s.notes || '',
         isReturned: s.isReturned || false,
+        isCancelled: s.isCancelled || false,
         returnedAt: s.returnedAt || '',
+        cancelledAt: s.cancelledAt || '',
         returnReason: s.returnReason || '',
+        cancelReason: s.cancelReason || '',
         createdAt: s.createdAt || s.date || ''
       };
     }
 
-    // ============================================================
-    // ডাটা
-    // ============================================================
     function loadDB() {
       try {
         const sales = JSON.parse(localStorage.getItem(KEYS.sales) || '[]');
@@ -481,14 +509,8 @@
         db.products = JSON.parse(localStorage.getItem(KEYS.products) || '[]');
       } catch (e) { console.warn('লোড এরর:', e); }
     }
+    function saveDB() { localStorage.setItem(KEYS.sales, JSON.stringify(db.sales)); }
 
-    function saveDB() {
-      localStorage.setItem(KEYS.sales, JSON.stringify(db.sales));
-    }
-
-    // ============================================================
-    // টোস্ট + কনফার্ম
-    // ============================================================
     function toast(msg, type='success') {
       const t = document.getElementById('toast'), m = document.getElementById('toastMsg'), i = document.getElementById('toastIcon');
       m.innerText = msg;
@@ -513,13 +535,13 @@
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.body.style.overflow=''; }
 
     // ============================================================
-    // স্ট্যাটস
+    // স্ট্যাটস — বাতিল/রিটার্ন বাদ দেওয়া হয়েছে
     // ============================================================
     function updateStats() {
       const today = todayStr();
       const monthStart = today.slice(0,7) + '-01';
 
-      const valid = db.sales.filter(s => !s.isReturned);
+      const valid = db.sales.filter(s => !s.isReturned && !s.isCancelled);
       const totalSales = valid.reduce((s,x)=>s+(x.totalAmount||0), 0);
       const totalProfit = valid.reduce((s,x)=>s+(x.profit||0), 0);
       const totalCount = valid.length;
@@ -542,11 +564,7 @@
       document.getElementById('statDueCount').innerText = `${dueCount} টি মেমো`;
     }
 
-    // ============================================================
-    // চার্ট
-    // ============================================================
     function renderCharts() {
-      // ট্রেন্ড (৭ দিন)
       const days = [];
       const labels = [];
       for (let i=6; i>=0; i--) {
@@ -555,7 +573,7 @@
         days.push(ds);
         labels.push(ds.slice(5));
       }
-      const daySales = days.map(d => db.sales.filter(s => !s.isReturned && s.date === d).reduce((sum,s)=>sum+(s.totalAmount||0),0));
+      const daySales = days.map(d => db.sales.filter(s => !s.isReturned && !s.isCancelled && s.date === d).reduce((sum,s)=>sum+(s.totalAmount||0),0));
 
       if (charts.trend) charts.trend.destroy();
       const ctx1 = document.getElementById('chartTrend');
@@ -565,9 +583,8 @@
         options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#94a3b8',font:{size:8}},grid:{display:false}},y:{ticks:{color:'#94a3b8',font:{size:8}},grid:{color:'#1e293b'}}} }
       });
 
-      // পেমেন্ট পাই
       const payMap = { Cash:0, MFS:0, Card:0, Due:0 };
-      db.sales.filter(s => !s.isReturned).forEach(s => { payMap[s.paymentMethod] = (payMap[s.paymentMethod]||0) + (s.totalAmount||0); });
+      db.sales.filter(s => !s.isReturned && !s.isCancelled).forEach(s => { payMap[s.paymentMethod] = (payMap[s.paymentMethod]||0) + (s.totalAmount||0); });
       const payLabels = ['ক্যাশ','বিকাশ','কার্ড','বাকি'];
       const payData = [payMap.Cash, payMap.MFS, payMap.Card, payMap.Due];
       const payColors = ['#10b981','#ec4899','#06b6d4','#f59e0b'];
@@ -581,15 +598,11 @@
       });
     }
 
-    // ============================================================
-    // টপ প্রোডাক্ট / কাস্টমার
-    // ============================================================
     function renderTopLists() {
       const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-30);
       const cutoffStr = cutoff.toISOString().split('T')[0];
-      const recent = db.sales.filter(s => !s.isReturned && s.date >= cutoffStr);
+      const recent = db.sales.filter(s => !s.isReturned && !s.isCancelled && s.date >= cutoffStr);
 
-      // টপ প্রোডাক্ট
       const prodMap = {};
       recent.forEach(s => s.items.forEach(it => {
         const key = it.name;
@@ -612,7 +625,6 @@
         `).join('');
       }
 
-      // টপ কাস্টমার
       const custMap = {};
       recent.forEach(s => {
         const key = s.customerName || 'সাধারণ';
@@ -636,9 +648,6 @@
       }
     }
 
-    // ============================================================
-    // ফিল্টার
-    // ============================================================
     function onSearchInput() { state.searchQuery = document.getElementById('searchInput').value.toLowerCase().trim(); state.loadedCount = state.pageSize; applyFilters(); }
     function onFilterChange() {
       state.dateFrom = document.getElementById('dateFrom').value;
@@ -677,24 +686,28 @@
     function applyFilters() {
       let list = [...db.sales];
 
+      // ✅ প্রোডাক্টের নাম দিয়েও সার্চ
       if (state.searchQuery) {
         const q = state.searchQuery;
         list = list.filter(s =>
           (s.invoiceId||'').toLowerCase().includes(q) ||
           (s.customerName||'').toLowerCase().includes(q) ||
-          (s.customerPhone||'').includes(q)
+          (s.customerPhone||'').includes(q) ||
+          (s.items||[]).some(it => (it.name||'').toLowerCase().includes(q))
         );
       }
       if (state.dateFrom) list = list.filter(s => s.date >= state.dateFrom);
       if (state.dateTo) list = list.filter(s => s.date <= state.dateTo);
       if (state.paymentFilter !== 'all') list = list.filter(s => s.paymentMethod === state.paymentFilter);
-      if (state.statusFilter === 'paid') list = list.filter(s => !s.isReturned && s.paymentMethod !== 'Due');
-      else if (state.statusFilter === 'due') list = list.filter(s => !s.isReturned && s.paymentMethod === 'Due');
+
+      if (state.statusFilter === 'paid') list = list.filter(s => !s.isReturned && !s.isCancelled && s.paymentMethod !== 'Due');
+      else if (state.statusFilter === 'due') list = list.filter(s => !s.isReturned && !s.isCancelled && s.paymentMethod === 'Due');
       else if (state.statusFilter === 'returned') list = list.filter(s => s.isReturned);
+      else if (state.statusFilter === 'cancelled') list = list.filter(s => s.isCancelled);
+
       if (state.minAmount > 0) list = list.filter(s => (s.totalAmount||0) >= state.minAmount);
       if (state.maxAmount !== Infinity) list = list.filter(s => (s.totalAmount||0) <= state.maxAmount);
 
-      // sort
       list.sort((a,b) => {
         switch (state.sortBy) {
           case 'date_asc': return (a.date+' '+(a.time||'')).localeCompare(b.date+' '+(b.time||''));
@@ -709,15 +722,12 @@
 
       state.filtered = list;
 
-      const filteredTotal = list.filter(s=>!s.isReturned).reduce((s,x)=>s+(x.totalAmount||0),0);
+      const filteredTotal = list.filter(s=>!s.isReturned && !s.isCancelled).reduce((s,x)=>s+(x.totalAmount||0),0);
       document.getElementById('resultsInfo').innerHTML = `${list.length} টি লেনদেন • ${fmt(filteredTotal)}`;
 
       renderSalesList();
     }
 
-    // ============================================================
-    // লিস্ট রেন্ডার
-    // ============================================================
     function renderSalesList() {
       const container = document.getElementById('salesContainer');
       const loadMoreWrap = document.getElementById('loadMoreWrap');
@@ -738,7 +748,6 @@
       const toShow = state.filtered.slice(0, state.loadedCount);
 
       if (state.viewMode === 'group') {
-        // গ্রুপ বাই ডেট
         const groups = {};
         toShow.forEach(s => {
           if (!groups[s.date]) groups[s.date] = [];
@@ -747,8 +756,8 @@
         const dates = Object.keys(groups).sort().reverse();
 
         container.innerHTML = dates.map(date => {
-          const dayTotal = groups[date].filter(s=>!s.isReturned).reduce((sum,s)=>sum+(s.totalAmount||0),0);
-          const dayProfit = groups[date].filter(s=>!s.isReturned).reduce((sum,s)=>sum+(s.profit||0),0);
+          const dayTotal = groups[date].filter(s=>!s.isReturned && !s.isCancelled).reduce((sum,s)=>sum+(s.totalAmount||0),0);
+          const dayProfit = groups[date].filter(s=>!s.isReturned && !s.isCancelled).reduce((sum,s)=>sum+(s.profit||0),0);
           return `
             <div class="mb-3">
               <div class="flex items-center justify-between bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-2 mb-2">
@@ -785,14 +794,24 @@
       return d.toLocaleDateString('bn-BD', { day:'numeric', month:'short', year:'numeric' });
     }
 
+    // ⭐ নতুন কার্ড — প্রোডাক্ট প্রিভিউ + বাতিল বাটন
     function renderSaleCard(s) {
       const isSelected = state.selected.has(s.invoiceId);
       const payLabel = { Cash:'ক্যাশ', MFS:'বিকাশ', Card:'কার্ড', Due:'বাকি' }[s.paymentMethod] || s.paymentMethod;
       const payColor = { Cash:'emerald', MFS:'pink', Card:'cyan', Due:'amber' }[s.paymentMethod] || 'slate';
       const isReturn = s.isReturned;
+      const isCancel = s.isCancelled;
+
+      // প্রোডাক্ট প্রিভিউ
+      const itemsPreview = s.items.slice(0, 2).map(it => `<span class="text-slate-300">${escapeHtml(it.name)}</span> <span class="text-slate-500">×${it.qty}</span>`).join(' <span class="text-slate-600">•</span> ');
+      const moreCount = s.items.length - 2;
+      const productLine = itemsPreview + (moreCount > 0 ? ` <span class="text-cyan-400 font-bold">+${moreCount} আরও</span>` : '');
+      const totalItems = s.items.reduce((sum,it)=>sum+it.qty,0);
 
       return `
-        <div class="bg-slate-900 border ${isSelected?'border-indigo-500':isReturn?'border-rose-500/40 opacity-75':'border-slate-800'} rounded-2xl p-3 space-y-2">
+        <div class="bg-slate-900 border ${isSelected?'border-indigo-500':isCancel?'border-slate-700 bg-slate-900/40 opacity-70':isReturn?'border-rose-500/40 opacity-75':'border-slate-800'} rounded-2xl p-3 space-y-2 transition">
+          
+          <!-- টপ রো: চেকবক্স + ইনভয়েস নং + ব্যাজ -->
           <div class="flex items-start gap-2">
             <button onclick="toggleSelect('${s.invoiceId}')" class="w-4 h-4 rounded border-2 ${isSelected?'bg-indigo-500 border-indigo-500':'border-slate-600'} flex items-center justify-center flex-shrink-0 mt-0.5 active:scale-90">
               ${isSelected?'<i data-lucide="check" class="w-2.5 h-2.5 text-white"></i>':''}
@@ -802,27 +821,50 @@
                 <span class="font-mono text-[10px] font-black text-cyan-400">${escapeHtml(s.invoiceId)}</span>
                 <span class="bg-${payColor}-500/20 text-${payColor}-300 text-[9px] font-black px-1.5 py-0.5 rounded">${payLabel}</span>
                 ${isReturn?`<span class="bg-rose-500/20 text-rose-300 text-[9px] font-black px-1.5 py-0.5 rounded">↩ রিটার্ন</span>`:''}
+                ${isCancel?`<span class="bg-slate-500/30 text-slate-300 text-[9px] font-black px-1.5 py-0.5 rounded">✕ বাতিল</span>`:''}
               </div>
-              <p class="text-xs font-black text-white mt-1 truncate">${escapeHtml(s.customerName)}</p>
-              <p class="text-[10px] text-slate-500">${s.customerPhone?`📱 ${escapeHtml(s.customerPhone)} • `:''}${s.time||''} • ${s.items.length} টি আইটেম</p>
             </div>
             <div class="text-right flex-shrink-0">
-              <p class="text-base font-black ${isReturn?'text-slate-500 line-through':'text-white'}">${fmt(s.totalAmount)}</p>
+              <p class="text-base font-black ${isCancel||isReturn?'text-slate-500 line-through':'text-white'}">${fmt(s.totalAmount)}</p>
               <p class="text-[9px] font-bold ${s.profit>=0?'text-emerald-400':'text-rose-400'}">+${fmt(s.profit)}</p>
             </div>
           </div>
-          <div class="flex gap-1.5 pt-1">
-            <button onclick="openInvoice('${s.invoiceId}')" class="flex-1 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 py-1.5 rounded-lg text-[10px] font-bold border border-cyan-500/30 active:scale-95 flex items-center justify-center gap-0.5">
+
+          <!-- কাস্টমার -->
+          <div class="flex items-center gap-1 text-xs">
+            <i data-lucide="user" class="w-3 h-3 text-slate-500 flex-shrink-0"></i>
+            <p class="font-black ${isCancel||isReturn?'text-slate-400':'text-white'} truncate">${escapeHtml(s.customerName)}</p>
+            ${s.customerPhone?`<span class="text-[9px] text-slate-500">• 📱 ${escapeHtml(s.customerPhone)}</span>`:''}
+          </div>
+
+          <!-- ⭐ প্রোডাক্ট প্রিভিউ (নতুন!) -->
+          <div class="flex items-start gap-1 bg-slate-950/60 border border-slate-800/60 rounded-lg px-2 py-1.5 text-[10px] leading-relaxed">
+            <i data-lucide="package" class="w-3 h-3 text-cyan-400 flex-shrink-0 mt-0.5"></i>
+            <div class="flex-1 min-w-0">${productLine || '<span class="text-slate-500">কোনো পণ্য নেই</span>'}</div>
+          </div>
+
+          <!-- টাইম + আইটেম কাউন্ট -->
+          <div class="flex justify-between text-[9px] text-slate-500">
+            <span>🕐 ${s.time||'--'}</span>
+            <span>${s.items.length} ধরনের • ${totalItems} পিস</span>
+          </div>
+
+          <!-- ⭐ অ্যাকশন বাটন (বাতিল সহ) -->
+          <div class="flex gap-1 pt-1">
+            <button onclick="openInvoice('${s.invoiceId}')" class="flex-1 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 py-1.5 rounded-lg text-[9px] font-bold border border-cyan-500/30 active:scale-95 flex items-center justify-center gap-0.5">
               <i data-lucide="eye" class="w-3 h-3"></i> দেখুন
             </button>
-            <button onclick="repeatSaleById('${s.invoiceId}')" class="flex-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 py-1.5 rounded-lg text-[10px] font-bold border border-amber-500/30 active:scale-95 flex items-center justify-center gap-0.5">
+            <button onclick="openDetail('${s.invoiceId}')" class="flex-1 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 py-1.5 rounded-lg text-[9px] font-bold border border-indigo-500/30 active:scale-95 flex items-center justify-center gap-0.5">
+              <i data-lucide="list" class="w-3 h-3"></i> বিস্তারিত
+            </button>
+            <button onclick="repeatSaleById('${s.invoiceId}')" class="flex-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 py-1.5 rounded-lg text-[9px] font-bold border border-amber-500/30 active:scale-95 flex items-center justify-center gap-0.5">
               <i data-lucide="repeat" class="w-3 h-3"></i> রিপিট
             </button>
-            <button onclick="openCustomerModal('${escapeHtml(s.customerName).replace(/'/g,"\\'")}')" class="flex-1 bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 py-1.5 rounded-lg text-[10px] font-bold border border-purple-500/30 active:scale-95 flex items-center justify-center gap-0.5">
-              <i data-lucide="user" class="w-3 h-3"></i> কাস্টমার
-            </button>
-            <button onclick="openReturn('${s.invoiceId}')" ${isReturn?'disabled':''} class="${isReturn?'bg-slate-800/50 text-slate-600 cursor-not-allowed':'bg-rose-500/15 hover:bg-rose-500/25 text-rose-300'} py-1.5 rounded-lg text-[10px] font-bold border ${isReturn?'border-slate-800':'border-rose-500/30'} active:scale-95 flex items-center justify-center" title="রিটার্ন">
+            <button onclick="openReturn('${s.invoiceId}')" ${isReturn||isCancel?'disabled':''} class="${isReturn||isCancel?'bg-slate-800/50 text-slate-600 cursor-not-allowed':'bg-rose-500/15 hover:bg-rose-500/25 text-rose-300'} py-1.5 px-2 rounded-lg text-[9px] font-bold border ${isReturn||isCancel?'border-slate-800':'border-rose-500/30'} active:scale-95 flex items-center justify-center" title="রিটার্ন">
               <i data-lucide="undo-2" class="w-3 h-3"></i>
+            </button>
+            <button onclick="openCancel('${s.invoiceId}')" ${isCancel?'disabled':''} class="${isCancel?'bg-slate-800/50 text-slate-600 cursor-not-allowed':'bg-orange-500/15 hover:bg-orange-500/25 text-orange-300'} py-1.5 px-2 rounded-lg text-[9px] font-bold border ${isCancel?'border-slate-800':'border-orange-500/30'} active:scale-95 flex items-center justify-center" title="বাতিল">
+              <i data-lucide="x-circle" class="w-3 h-3"></i>
             </button>
           </div>
         </div>
@@ -834,9 +876,6 @@
       renderSalesList();
     }
 
-    // ============================================================
-    // সিলেকশন
-    // ============================================================
     function toggleSelect(id) {
       if (state.selected.has(id)) state.selected.delete(id);
       else state.selected.add(id);
@@ -850,9 +889,6 @@
       else bar.classList.add('hidden');
     }
 
-    // ============================================================
-    // রিপিট সেল — POS-এ পাঠানো
-    // ============================================================
     function repeatSaleById(id) {
       const sale = db.sales.find(s => s.invoiceId === id);
       if (sale) repeatSale(sale);
@@ -881,11 +917,7 @@
         }
       });
 
-      if (cart.length === 0) {
-        toast('❌ কোনো পণ্যের স্টক নেই','error');
-        return;
-      }
-
+      if (cart.length === 0) { toast('❌ কোনো পণ্যের স্টক নেই','error'); return; }
       if (skipped.length > 0) {
         const proceed = window.confirm(`${skipped.length}টি পণ্যের স্টক নেই (${skipped.join(', ')})।\nবাকিগুলো কার্টে যোগ করবেন?`);
         if (!proceed) return;
@@ -901,9 +933,6 @@
       setTimeout(() => window.location.href = 'pos.html', 800);
     }
 
-    // ============================================================
-    // ইনভয়েস
-    // ============================================================
     function openInvoice(id) {
       const sale = db.sales.find(s => s.invoiceId === id);
       if (!sale) return toast('মেমো পাওয়া যায়নি','error');
@@ -930,6 +959,12 @@
       const totalItems = sale.items.reduce((s,i)=>s+i.qty,0);
       const payLabel = { Cash:'ক্যাশ', MFS:'বিকাশ/নগদ', Card:'কার্ড', Due:'বাকি' }[sale.paymentMethod] || sale.paymentMethod;
 
+      const statusBanner = sale.isCancelled
+        ? `<div style="background:#fee2e2;border:2px solid #f97316;color:#9a3412;font-weight:900;padding:8px;border-radius:8px;text-align:center;margin:12px 0;font-size:14px;">✕ এই বিক্রিটি বাতিল করা হয়েছে (${escapeHtml(sale.cancelReason||'')})</div>`
+        : sale.isReturned
+        ? `<div style="background:#fee2e2;border:2px solid #ef4444;color:#991b1b;font-weight:900;padding:8px;border-radius:8px;text-align:center;margin:12px 0;font-size:14px;">⚠️ এই বিক্রিটি রিটার্ন করা হয়েছে (${escapeHtml(sale.returnReason||'')})</div>`
+        : '';
+
       el.innerHTML = `
         <div style="font-family:'Hind Siliguri',sans-serif;color:#0f172a;">
           <div style="display:flex;justify-content:space-between;border-bottom:3px solid #4338ca;padding-bottom:16px;">
@@ -946,9 +981,7 @@
               <p style="font-size:11px;margin:3px 0 0 0;color:#334155;">সময়: <b>${sale.time}</b></p>
             </div>
           </div>
-
-          ${sale.isReturned ? `<div style="background:#fee2e2;border:2px solid #ef4444;color:#991b1b;font-weight:900;padding:8px;border-radius:8px;text-align:center;margin:12px 0;font-size:14px;">⚠️ এই বিক্রিটি রিটার্ন করা হয়েছে (${sale.returnReason||''})</div>` : ''}
-
+          ${statusBanner}
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;background:#f8fafc;border:1px solid #e2e8f0;padding:12px;border-radius:12px;margin:20px 0;">
             <div>
               <p style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;margin:0;">ক্রেতার তথ্য</p>
@@ -961,7 +994,6 @@
               <span style="display:inline-block;background:${sale.paymentMethod==='Due'?'#fef3c7':'#d1fae5'};color:${sale.paymentMethod==='Due'?'#92400e':'#065f46'};font-weight:700;font-size:10px;padding:2px 10px;border-radius:20px;margin-top:4px;">${sale.paymentMethod==='Due'?'বাকি':'পরিশোধিত'}</span>
             </div>
           </div>
-
           <table style="width:100%;border-collapse:collapse;margin:16px 0;">
             <thead>
               <tr style="background:#4338ca;color:white;">
@@ -974,7 +1006,6 @@
             </thead>
             <tbody>${itemsRows}</tbody>
           </table>
-
           <div style="display:flex;justify-content:space-between;margin-top:20px;gap:16px;">
             <div style="flex:1;font-size:11px;color:#64748b;">
               <p style="font-weight:700;color:#334155;margin:0;">শর্তাবলী:</p>
@@ -983,25 +1014,18 @@
               ${sale.notes?`<p style="margin:8px 0 0 0;color:#4338ca;font-weight:700;">নোট: ${escapeHtml(sale.notes)}</p>`:''}
             </div>
             <div style="width:260px;font-size:12px;">
-              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e2e8f0;color:#475569;">
-                <span>সাব-টোটাল:</span><span style="font-weight:700;color:#0f172a;">৳${sale.subtotal}</span>
-              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e2e8f0;color:#475569;"><span>সাব-টোটাল:</span><span style="font-weight:700;color:#0f172a;">৳${sale.subtotal}</span></div>
               ${sale.discount.amount>0?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e2e8f0;color:#475569;"><span>ডিসকাউন্ট:</span><span style="font-weight:700;color:#dc2626;">-৳${sale.discount.amount}</span></div>`:''}
               ${sale.deliveryCharge>0?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e2e8f0;color:#475569;"><span>ডেলিভারি:</span><span style="font-weight:700;color:#0891b2;">৳${sale.deliveryCharge}</span></div>`:''}
-              <div style="display:flex;justify-content:space-between;padding:10px 12px;background:#eef2ff;border-radius:12px;margin-top:6px;">
-                <span style="font-weight:900;color:#1e1b4b;font-size:14px;">সর্বমোট:</span>
-                <span style="font-weight:900;color:#1e1b4b;font-size:18px;">৳${sale.totalAmount}</span>
-              </div>
+              <div style="display:flex;justify-content:space-between;padding:10px 12px;background:#eef2ff;border-radius:12px;margin-top:6px;"><span style="font-weight:900;color:#1e1b4b;font-size:14px;">সর্বমোট:</span><span style="font-weight:900;color:#1e1b4b;font-size:18px;">৳${sale.totalAmount}</span></div>
               ${sale.paymentMethod==='Cash'?`<div style="display:flex;justify-content:space-between;padding:6px 0;color:#475569;font-size:11px;"><span>গ্রহণ:</span><span style="font-weight:700;">৳${sale.amountPaid}</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;color:#059669;font-weight:700;font-size:11px;"><span>ফেরত:</span><span>৳${sale.change}</span></div>`:''}
               ${sale.paymentMethod==='Due'?`<div style="display:flex;justify-content:space-between;padding:6px 0;color:#b45309;font-weight:700;font-size:11px;"><span>বাকি:</span><span>৳${sale.totalAmount}</span></div>`:''}
             </div>
           </div>
-
           <div style="display:flex;justify-content:space-between;margin-top:60px;padding-top:20px;border-top:1px dashed #cbd5e1;font-size:11px;color:#64748b;">
             <div style="text-align:center;"><div style="width:150px;border-bottom:2px solid #94a3b8;margin-bottom:4px;height:24px;"></div><span>ক্রেতার স্বাক্ষর</span></div>
             <div style="text-align:center;"><div style="width:170px;border-bottom:2px solid #94a3b8;margin-bottom:4px;height:24px;"></div><span style="font-weight:700;color:#334155;">কর্তৃপক্ষের স্বাক্ষর</span></div>
           </div>
-
           <p style="text-align:center;font-size:11px;color:#4338ca;font-weight:700;margin-top:20px;">আমাদের সাথে থাকার জন্য ধন্যবাদ! 🙏</p>
           <p style="text-align:center;font-size:9px;color:#94a3b8;margin-top:4px;">মোট ${totalItems} পিস • ${sale.items.length} টি আইটেম</p>
         </div>`;
@@ -1012,13 +1036,14 @@
       const itemsRows = sale.items.map((it,i)=>`
         <div style="margin-bottom:6px;font-size:10px;">
           <div style="font-weight:700;">${escapeHtml(it.name)}</div>
-          <div style="display:flex;justify-content:space-between;">
-            <span>${it.qty} × ৳${it.unitPrice}</span>
-            <span style="font-weight:700;">৳${it.unitPrice*it.qty}</span>
-          </div>
+          <div style="display:flex;justify-content:space-between;"><span>${it.qty} × ৳${it.unitPrice}</span><span style="font-weight:700;">৳${it.unitPrice*it.qty}</span></div>
         </div>`).join('');
-
       const payLabel = { Cash:'ক্যাশ', MFS:'বিকাশ/নগদ', Card:'কার্ড', Due:'বাকি' }[sale.paymentMethod] || sale.paymentMethod;
+      const statusBanner = sale.isCancelled
+        ? `<div style="background:#fee2e2;color:#9a3412;font-weight:900;padding:4px;text-align:center;font-size:10px;margin-bottom:6px;">✕ বাতিল করা হয়েছে</div>`
+        : sale.isReturned
+        ? `<div style="background:#fee2e2;color:#991b1b;font-weight:900;padding:4px;text-align:center;font-size:10px;margin-bottom:6px;">⚠️ রিটার্ন করা হয়েছে</div>`
+        : '';
 
       el.innerHTML = `
         <div style="text-align:center;margin-bottom:8px;">
@@ -1027,7 +1052,7 @@
           <p style="font-size:8px;">কারওয়ান বাজার, ঢাকা</p>
           <p style="font-size:9px;margin-top:2px;">📞 01516513987</p>
         </div>
-        ${sale.isReturned?`<div style="background:#fee2e2;color:#991b1b;font-weight:900;padding:4px;text-align:center;font-size:10px;margin-bottom:6px;">⚠️ রিটার্ন করা হয়েছে</div>`:''}
+        ${statusBanner}
         <div style="border-top:1px dashed #333;border-bottom:1px dashed #333;padding:4px 0;margin-bottom:6px;font-size:9px;">
           <div style="display:flex;justify-content:space-between;"><span>মেমো:</span><span style="font-weight:700;">${sale.invoiceId}</span></div>
           <div style="display:flex;justify-content:space-between;"><span>তারিখ:</span><span>${sale.date} ${sale.time}</span></div>
@@ -1039,9 +1064,7 @@
           <div style="display:flex;justify-content:space-between;"><span>সাব-টোটাল:</span><span>৳${sale.subtotal}</span></div>
           ${sale.discount.amount>0?`<div style="display:flex;justify-content:space-between;"><span>ডিসকাউন্ট:</span><span>-৳${sale.discount.amount}</span></div>`:''}
           ${sale.deliveryCharge>0?`<div style="display:flex;justify-content:space-between;"><span>ডেলিভারি:</span><span>৳${sale.deliveryCharge}</span></div>`:''}
-          <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:900;border-top:2px solid #333;border-bottom:2px solid #333;padding:4px 0;margin:4px 0;">
-            <span>মোট:</span><span>৳${sale.totalAmount}</span>
-          </div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:900;border-top:2px solid #333;border-bottom:2px solid #333;padding:4px 0;margin:4px 0;"><span>মোট:</span><span>৳${sale.totalAmount}</span></div>
           <div style="display:flex;justify-content:space-between;"><span>পেমেন্ট:</span><span>${payLabel}</span></div>
           ${sale.paymentMethod==='Cash'?`<div style="display:flex;justify-content:space-between;"><span>গ্রহণ:</span><span>৳${sale.amountPaid}</span></div><div style="display:flex;justify-content:space-between;"><span>ফেরত:</span><span>৳${sale.change}</span></div>`:''}
           ${sale.paymentMethod==='Due'?`<div style="display:flex;justify-content:space-between;font-weight:900;"><span>বাকি:</span><span>৳${sale.totalAmount}</span></div>`:''}
@@ -1118,6 +1141,7 @@
       const sale = db.sales.find(s => s.invoiceId === id);
       if (!sale) return;
       if (sale.isReturned) return toast('ইতিমধ্যে রিটার্ন করা হয়েছে','info');
+      if (sale.isCancelled) return toast('বাতিল করা বিক্রি রিটার্ন করা যাবে না','error');
       state.currentSale = sale;
       document.getElementById('returnInvoiceId').innerText = sale.invoiceId;
       document.getElementById('returnCustomer').innerText = sale.customerName;
@@ -1154,9 +1178,88 @@
       renderCharts();
       renderTopLists();
       applyFilters();
-
       toast(`✅ রিটার্ন সম্পন্ন${restore?' — স্টক ফেরত যোগ হয়েছে':''}`);
       state.currentSale = null;
+    }
+
+    // ============================================================
+    // ⭐ বাতিল (Cancel) — ভুলে চাপা বিক্রি
+    // ============================================================
+    function openCancel(id) {
+      const sale = db.sales.find(s => s.invoiceId === id);
+      if (!sale) return;
+      if (sale.isCancelled) return toast('ইতিমধ্যে বাতিল করা হয়েছে','info');
+      state.currentSale = sale;
+      document.getElementById('cancelInvoiceId').innerText = sale.invoiceId;
+      document.getElementById('cancelCustomer').innerText = sale.customerName;
+      document.getElementById('cancelAmount').innerText = fmt(sale.totalAmount);
+      document.getElementById('restoreStockCancel').checked = true;
+      document.getElementById('cancelReason').value = 'ভুলে এন্ট্রি দেওয়া হয়েছে';
+
+      // প্রোডাক্ট লিস্ট দেখাও
+      const prodList = document.getElementById('cancelProductList');
+      prodList.innerHTML = sale.items.map(it =>
+        `<div class="flex justify-between text-[10px]">
+          <span class="text-slate-300 truncate">${escapeHtml(it.name)} ×${it.qty}</span>
+          <span class="text-slate-500">${fmt(it.unitPrice*it.qty)}</span>
+        </div>`
+      ).join('');
+
+      openModal('cancelModal');
+    }
+
+    function confirmCancel() {
+      const sale = state.currentSale;
+      if (!sale) return;
+      const restore = document.getElementById('restoreStockCancel').checked;
+      const reason = document.getElementById('cancelReason').value;
+
+      sale.isCancelled = true;
+      sale.cancelledAt = todayStr() + ' ' + new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+      sale.cancelReason = reason;
+
+      if (restore) {
+        const products = JSON.parse(localStorage.getItem(KEYS.products) || '[]');
+        sale.items.forEach(item => {
+          const p = products.find(x => x.id === item.productId) || products.find(x => x.name === item.name);
+          if (p) p.qty = (p.qty||0) + item.qty;
+        });
+        localStorage.setItem(KEYS.products, JSON.stringify(products));
+        db.products = products;
+      }
+
+      saveDB();
+      closeModal('cancelModal');
+      closeInvoice();
+      updateStats();
+      renderCharts();
+      renderTopLists();
+      applyFilters();
+      toast(`✅ বিক্রি বাতিল সম্পন্ন${restore?' — স্টক ফেরত যোগ হয়েছে':''}`);
+      state.currentSale = null;
+    }
+
+    // ⭐ সম্পূর্ণ ডিলিট
+    function confirmDelete() {
+      const sale = state.currentSale;
+      if (!sale) return;
+
+      confirm(
+        'সম্পূর্ণ ডিলিট করবেন?',
+        `মেমো ${sale.invoiceId} সম্পূর্ণ মুছে ফেলা হবে। এই কাজটি ফেরানো যাবে না।`,
+        () => {
+          db.sales = db.sales.filter(s => s.invoiceId !== sale.invoiceId);
+          saveDB();
+          closeModal('cancelModal');
+          closeInvoice();
+          updateStats();
+          renderCharts();
+          renderTopLists();
+          applyFilters();
+          toast('🗑️ বিক্রি সম্পূর্ণ মুছে ফেলা হয়েছে', 'info');
+          state.currentSale = null;
+        }
+      );
     }
 
     // ============================================================
@@ -1172,9 +1275,8 @@
         return;
       }
 
-      const validSales = sales.filter(s=>!s.isReturned);
+      const validSales = sales.filter(s=>!s.isReturned && !s.isCancelled);
       const totalSpent = validSales.reduce((s,x)=>s+(x.totalAmount||0),0);
-      const totalProfit = validSales.reduce((s,x)=>s+(x.profit||0),0);
       const avgTicket = validSales.length ? totalSpent/validSales.length : 0;
       const phone = sales[0].customerPhone || '';
 
@@ -1201,24 +1303,24 @@
           </div>
         </div>
         <p class="text-[11px] font-black text-slate-300 mt-2 mb-1">লেনদেনের তালিকা:</p>
-        ${sales.map(s => `
-          <div onclick="closeModal('customerModal'); openInvoice('${s.invoiceId}');" class="bg-slate-950 border ${s.isReturned?'border-rose-500/40 opacity-60':'border-slate-800'} rounded-xl p-2.5 cursor-pointer active:scale-99">
+        ${sales.map(s => {
+          const stTag = s.isCancelled ? '<span class="text-orange-400 font-bold ml-1">[বাতিল]</span>' : s.isReturned ? '<span class="text-rose-400 font-bold ml-1">[রিটার্ন]</span>' : '';
+          return `
+          <div onclick="closeModal('customerModal'); openInvoice('${s.invoiceId}');" class="bg-slate-950 border ${s.isCancelled?'border-slate-700 opacity-60':s.isReturned?'border-rose-500/40 opacity-60':'border-slate-800'} rounded-xl p-2.5 cursor-pointer active:scale-99">
             <div class="flex justify-between items-center">
               <div class="flex-1 min-w-0">
-                <p class="font-mono text-[10px] font-black text-cyan-400">${escapeHtml(s.invoiceId)}</p>
-                <p class="text-[10px] text-slate-500">${s.date} ${s.time||''} • ${s.paymentMethod === 'Cash' ? 'ক্যাশ' : s.paymentMethod === 'MFS' ? 'বিকাশ' : s.paymentMethod === 'Due' ? 'বাকি' : 'কার্ড'}</p>
+                <p class="font-mono text-[10px] font-black text-cyan-400">${escapeHtml(s.invoiceId)} ${stTag}</p>
+                <p class="text-[10px] text-slate-500 truncate">${s.items.map(it=>it.name).join(', ')}</p>
+                <p class="text-[9px] text-slate-600">${s.date} ${s.time||''}</p>
               </div>
-              <span class="text-xs font-black ${s.isReturned?'text-rose-400 line-through':'text-white'}">${fmt(s.totalAmount)}</span>
+              <span class="text-xs font-black ${s.isCancelled||s.isReturned?'text-slate-500 line-through':'text-white'} ml-1">${fmt(s.totalAmount)}</span>
             </div>
-          </div>
-        `).join('')}
+          </div>`;
+        }).join('')}
       `;
       openModal('customerModal');
     }
 
-    // ============================================================
-    // ডিটেইল মডাল
-    // ============================================================
     function openDetail(id) {
       const sale = db.sales.find(s => s.invoiceId === id);
       if (!sale) return;
@@ -1233,7 +1335,10 @@
         </div>
       `).join('');
 
+      const statusBadge = sale.isCancelled ? '<span class="bg-orange-500/20 text-orange-300 text-[10px] font-black px-2 py-0.5 rounded">✕ বাতিল</span>' : sale.isReturned ? '<span class="bg-rose-500/20 text-rose-300 text-[10px] font-black px-2 py-0.5 rounded">↩ রিটার্ন</span>' : '<span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded">✓ সম্পন্ন</span>';
+
       document.getElementById('detailContent').innerHTML = `
+        <div class="flex justify-end">${statusBadge}</div>
         <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-1 text-xs">
           <div class="flex justify-between"><span class="text-slate-400">মেমো:</span><span class="font-mono font-black text-cyan-400">${escapeHtml(sale.invoiceId)}</span></div>
           <div class="flex justify-between"><span class="text-slate-400">তারিখ:</span><span class="font-bold text-white">${sale.date} ${sale.time||''}</span></div>
@@ -1249,6 +1354,8 @@
           <div class="flex justify-between border-t border-slate-800 pt-1.5"><span class="text-slate-300 font-black">সর্বমোট:</span><span class="text-cyan-400 font-black text-base">${fmt(sale.totalAmount)}</span></div>
           <div class="flex justify-between"><span class="text-slate-400">লাভ:</span><span class="text-emerald-400 font-black">+${fmt(sale.profit)}</span></div>
         </div>
+        ${sale.isCancelled?`<div class="bg-orange-950/40 border border-orange-500/40 rounded-xl p-2 text-[10px] text-orange-200"><b>বাতিল কারণ:</b> ${escapeHtml(sale.cancelReason||'-')}<br><b>সময়:</b> ${escapeHtml(sale.cancelledAt||'-')}</div>`:''}
+        ${sale.isReturned?`<div class="bg-rose-950/40 border border-rose-500/40 rounded-xl p-2 text-[10px] text-rose-200"><b>রিটার্ন কারণ:</b> ${escapeHtml(sale.returnReason||'-')}<br><b>সময়:</b> ${escapeHtml(sale.returnedAt||'-')}</div>`:''}
         <div class="grid grid-cols-2 gap-1.5">
           <button onclick="closeModal('detailModal'); openInvoice('${sale.invoiceId}');" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black py-2.5 rounded-xl text-[10px] active:scale-95 transition flex items-center justify-center gap-1">
             <i data-lucide="receipt" class="w-3 h-3"></i> মেমো দেখুন
@@ -1257,14 +1364,12 @@
             <i data-lucide="repeat" class="w-3 h-3"></i> রিপিট
           </button>
         </div>
-        ${!sale.isReturned?`<button onclick="closeModal('detailModal'); openReturn('${sale.invoiceId}');" class="w-full bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 font-bold py-2 rounded-xl text-[10px] border border-rose-500/30 active:scale-95 transition flex items-center justify-center gap-1"><i data-lucide="undo-2" class="w-3 h-3"></i> রিটার্ন করুন</button>`:''}
+        ${!sale.isCancelled?`<button onclick="closeModal('detailModal'); openCancel('${sale.invoiceId}');" class="w-full bg-orange-500/15 hover:bg-orange-500/25 text-orange-300 font-bold py-2 rounded-xl text-[10px] border border-orange-500/30 active:scale-95 transition flex items-center justify-center gap-1"><i data-lucide="x-circle" class="w-3 h-3"></i> বাতিল করুন</button>`:''}
+        ${!sale.isReturned && !sale.isCancelled?`<button onclick="closeModal('detailModal'); openReturn('${sale.invoiceId}');" class="w-full bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 font-bold py-2 rounded-xl text-[10px] border border-rose-500/30 active:scale-95 transition flex items-center justify-center gap-1"><i data-lucide="undo-2" class="w-3 h-3"></i> রিটার্ন করুন</button>`:''}
       `;
       openModal('detailModal');
     }
 
-    // ============================================================
-    // এক্সপোর্ট
-    // ============================================================
     function exportAllCSV() {
       if (db.sales.length === 0) return toast('কোনো ডেটা নেই','error');
       exportCSV(db.sales);
@@ -1279,10 +1384,12 @@
     function exportCSV(sales) {
       const rows = [['মেমো','তারিখ','সময়','কাস্টমার','ফোন','পেমেন্ট','মোট','লাভ','স্ট্যাটাস','আইটেম']];
       sales.forEach(s => {
+        let status = 'সম্পন্ন';
+        if (s.isCancelled) status = 'বাতিল';
+        else if (s.isReturned) status = 'রিটার্ন';
         rows.push([
           s.invoiceId, s.date, s.time||'', s.customerName, s.customerPhone||'',
-          s.paymentMethod, s.totalAmount, s.profit,
-          s.isReturned?'রিটার্ন':'সম্পন্ন',
+          s.paymentMethod, s.totalAmount, s.profit, status,
           s.items.map(it=>`${it.name} x${it.qty}`).join(' | ')
         ]);
       });
@@ -1297,16 +1404,12 @@
 
     function printTodayInvoices() {
       const today = todayStr();
-      const todaySales = db.sales.filter(s => s.date === today && !s.isReturned);
+      const todaySales = db.sales.filter(s => s.date === today && !s.isReturned && !s.isCancelled);
       if (todaySales.length === 0) return toast('আজ কোনো বিক্রি হয়নি','info');
-      toast(`📄 আজ ${todaySales.length}টি মেমো প্রিন্ট শুরু হচ্ছে...`,'info');
-      // Open each invoice in sequence — but this is complex. Simpler: export CSV
+      toast(`📄 আজ ${todaySales.length}টি মেমো এক্সপোর্ট হচ্ছে...`,'info');
       exportCSV(todaySales);
     }
 
-    // ============================================================
-    // গুগল শিট সিঙ্ক
-    // ============================================================
     function fetchLiveData(manual) {
       const btn = document.getElementById('btnSync');
       const txt = document.getElementById('syncText');
@@ -1329,11 +1432,13 @@
             db.sales.forEach(x => localMap[x.invoiceId] = x);
             data.sales.forEach(s => {
               const norm = normalizeSale(s);
-              // লোনাল থাকলে merge flags
               if (localMap[norm.invoiceId]) {
                 norm.isReturned = localMap[norm.invoiceId].isReturned || norm.isReturned;
                 norm.returnReason = localMap[norm.invoiceId].returnReason || norm.returnReason;
                 norm.returnedAt = localMap[norm.invoiceId].returnedAt || norm.returnedAt;
+                norm.isCancelled = localMap[norm.invoiceId].isCancelled || norm.isCancelled;
+                norm.cancelReason = localMap[norm.invoiceId].cancelReason || norm.cancelReason;
+                norm.cancelledAt = localMap[norm.invoiceId].cancelledAt || norm.cancelledAt;
               }
               localMap[norm.invoiceId] = norm;
             });
@@ -1367,9 +1472,6 @@
       setTimeout(() => { if (!done) { done = true; cleanup(); } }, 6000);
     }
 
-    // ============================================================
-    // ইনিশিয়ালাইজ
-    // ============================================================
     window.addEventListener('DOMContentLoaded', () => {
       loadDB();
       updateStats();
@@ -1381,7 +1483,7 @@
     });
 
     document.addEventListener('click', (e) => {
-      ['invoiceModal','customerModal','returnModal','detailModal'].forEach(id => {
+      ['invoiceModal','customerModal','returnModal','cancelModal','detailModal'].forEach(id => {
         const el = document.getElementById(id);
         if (el && !el.classList.contains('hidden') && e.target === el) closeModal(id);
       });
